@@ -17,7 +17,26 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+    aws-eventstream (1.4.0)
+    aws-partitions (1.1120.0)
+    aws-sdk-core (3.226.0)
+      aws-eventstream (~> 1, >= 1.3.0)
+      aws-partitions (~> 1, >= 1.992.0)
+      aws-sigv4 (~> 1.9)
+      base64
+      jmespath (~> 1, >= 1.6.1)
+      logger
+    aws-sdk-kms (1.105.0)
+      aws-sdk-core (~> 3, >= 3.225.0)
+      aws-sigv4 (~> 1.5)
+    aws-sdk-s3 (1.190.0)
+      aws-sdk-core (~> 3, >= 3.225.0)
+      aws-sdk-kms (~> 1)
+      aws-sigv4 (~> 1.5)
+    aws-sigv4 (1.12.1)
+      aws-eventstream (~> 1, >= 1.0.2)
     base64 (0.3.0)
+    jmespath (1.6.2)
     logger (1.7.0)
     mustermann (3.0.3)
       ruby2_keywords (~> 0.0.1)
@@ -31,6 +50,7 @@ GEM
     rackup (2.2.1)
       rack (>= 3)
     ruby2_keywords (0.0.5)
+    rubyzip (2.4.1)
     tilt (2.6.0)
 
 PLATFORMS
@@ -38,8 +58,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  aws-sdk-s3
   puma (~> 6.6)
   rackup (~> 2.2)
+  rubyzip
   sinatra!
 
 RUBY VERSION
