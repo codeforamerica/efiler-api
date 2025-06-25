@@ -7,10 +7,11 @@ end
 
 get '/efile' do
   puts "doing efile"
-  EfilerService.run_efiler_command("acks")
+  EfilerService.run_efiler_command("test", "acks", "43164321897643267891")
 end
 
 class EfilerService
+  # TODO: update to most recent commit
   CURRENT_VERSION = 'ae332c44bac585fb9dbec9bf32ffff0d34a72830'
   RETRYABLE_LOG_CONTENTS = [
     /Transaction Result: The server sent HTTP status code 302: Moved Temporarily/,
@@ -32,7 +33,7 @@ class EfilerService
       ensure_config_dir_prepared
 
       classes_zip_path = ensure_gyr_efiler_downloaded
-      config_dir = "tmp/gyr_efiler/gyr_efiler_config"
+      config_dir = File.join(Dir.pwd, "tmp", "gyr_efiler", "gyr_efiler_config")
 
       # On macOS, "java" will show a confusing pop-up if you run it without a JVM installed. Check for that and exit early.
       unless system('java', '-version', out: "/dev/null", err: '/dev/null')
@@ -59,8 +60,7 @@ class EfilerService
         elsif RETRYABLE_LOG_CONTENTS.any? { |contents| log_contents.match(contents) }
           raise RetryableError, log_contents
         else
-          Rails.logger.info("GyrEfiler exit code: #{exit_code}")
-          raise Error, log_contents
+          raise StandardError, log_contents
         end
       end
 
@@ -71,14 +71,15 @@ class EfilerService
   private
 
   def self.ensure_config_dir_prepared
-    config_dir = "tmp/gyr_efiler/gyr_efiler_config"
+    # TODO fix unzipping
+    config_dir = File.join(Dir.pwd, "tmp", "gyr_efiler", "gyr_efiler_config")
     FileUtils.mkdir_p(config_dir)
     return if File.exist?(File.join(config_dir, '.ready'))
 
     config_zip_path = Dir.glob("gyr_efiler/gyr-efiler-config-#{CURRENT_VERSION}.zip")[0]
     raise StandardError.new("Please run `ruby scripts/download_gyr_efiler.rb` then try again") if config_zip_path.nil?
 
-    system!("unzip -o #{config_zip_path} -d /tmp/gyr_efiler")
+    system!("unzip -o #{config_zip_path} -d #{File.join(Dir.pwd,"tmp", "gyr_efiler")}")
 
     local_efiler_repo_config_path = File.expand_path('../gyr-efiler/gyr_efiler_config')
     if ENV['RACK_ENV'] && File.exist?(local_efiler_repo_config_path)
@@ -103,7 +104,7 @@ class EfilerService
   end
 
   def self.ensure_gyr_efiler_downloaded
-    classes_zip_path = Dir.glob("gyr_efiler/gyr-efiler-classes-#{CURRENT_VERSION}.zip")[0]
+    classes_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-classes-#{CURRENT_VERSION}.zip"))[0]
     raise StandardError.new("You must run `ruby scripts/download_gyr_efiler.rb`") if classes_zip_path.nil?
 
     return classes_zip_path
@@ -119,6 +120,7 @@ class EfilerService
   end
 
   def self.config_values
+    # TODO add real credentials
     app_sys_id = "fake_app_sys_id"
     efile_cert_base64 = "fake_efile_cert_base64"
     etin = "fake_etin"
