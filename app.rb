@@ -1,5 +1,5 @@
 require 'sinatra'
-require 'pry'
+require 'pry-byebug'
 
 get '/' do
   'Hello world!'
