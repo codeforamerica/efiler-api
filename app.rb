@@ -71,12 +71,11 @@ class EfilerService
   private
 
   def self.ensure_config_dir_prepared
-    # TODO fix unzipping
     config_dir = File.join(Dir.pwd, "tmp", "gyr_efiler", "gyr_efiler_config")
     FileUtils.mkdir_p(config_dir)
     return if File.exist?(File.join(config_dir, '.ready'))
 
-    config_zip_path = Dir.glob("gyr_efiler/gyr-efiler-config-#{CURRENT_VERSION}.zip")[0]
+    config_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-config-#{CURRENT_VERSION}.zip"))[0]
     raise StandardError.new("Please run `ruby scripts/download_gyr_efiler.rb` then try again") if config_zip_path.nil?
 
     system!("unzip -o #{config_zip_path} -d #{File.join(Dir.pwd,"tmp", "gyr_efiler")}")
