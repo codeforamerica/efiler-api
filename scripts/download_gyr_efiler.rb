@@ -3,8 +3,8 @@ require "aws-sdk-s3"
 
 CURRENT_VERSION = 'ae332c44bac585fb9dbec9bf32ffff0d34a72830'
 download_paths = [
-  "gyr_efiler/gyr_efiler-classes-#{CURRENT_VERSION}.zip",
-  "gyr_efiler/gyr_efiler-config-#{CURRENT_VERSION}.zip"
+  "gyr_efiler/gyr-efiler-classes-#{CURRENT_VERSION}.zip",
+  "gyr_efiler/gyr-efiler-config-#{CURRENT_VERSION}.zip"
 ]
 
 # If the file already exists, do not re-download.
@@ -21,7 +21,7 @@ credentials =  Aws::Credentials.new(access_key_id, secret_access_key)
 download_paths.each do |path|
   Aws::S3::Client.new(region: 'us-east-1', credentials: credentials).get_object(
     response_target: path,
-    bucket: "gyr_efiler-releases",
+    bucket: "gyr-efiler-releases",
     key: File.basename(path),
   )
 end
