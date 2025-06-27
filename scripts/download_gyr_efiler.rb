@@ -1,7 +1,7 @@
 require 'zip'
 require "aws-sdk-s3"
 
-CURRENT_VERSION = 'ae332c44bac585fb9dbec9bf32ffff0d34a72830'
+CURRENT_VERSION = 'd8645b36cf2a9faa0593edb703411d8f4bea10df'
 download_paths = [
   "gyr_efiler/gyr-efiler-classes-#{CURRENT_VERSION}.zip",
   "gyr_efiler/gyr-efiler-config-#{CURRENT_VERSION}.zip"

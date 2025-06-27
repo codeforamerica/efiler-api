@@ -1,7 +1,7 @@
 # TODO: implement .with_lock or equivalent to prevent too many connections with mef (?)
 class EfilerService
   # TODO: update to most recent commit
-  CURRENT_VERSION = 'ae332c44bac585fb9dbec9bf32ffff0d34a72830'
+  CURRENT_VERSION = 'd8645b36cf2a9faa0593edb703411d8f4bea10df'
   RETRYABLE_LOG_CONTENTS = [
     /Transaction Result: The server sent HTTP status code 302: Moved Temporarily/,
     /connect timed out - Fault Code: soap:Server/,
