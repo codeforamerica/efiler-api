@@ -1,7 +1,6 @@
 require "spec_helper"
 require "./efiler_service.rb"
 require "tmpdir"
-require "zip"
 
 RSpec.describe EfilerService do
   before do

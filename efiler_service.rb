@@ -1,3 +1,5 @@
+require "zip"
+
 # TODO: implement .with_lock or equivalent to prevent too many connections with mef (?)
 class EfilerService
   # TODO: update to most recent commit
