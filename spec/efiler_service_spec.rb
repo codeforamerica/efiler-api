@@ -147,7 +147,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command
-          }.to_not raise_error(EfilerService::RetryableError)
+          }.to raise_error(EfilerService::RetryableError)
         end
       end
 
