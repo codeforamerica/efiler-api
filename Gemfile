@@ -10,6 +10,7 @@ gem "aws-sdk-s3"
 gem "rubyzip"
 gem "rerun"
 gem "rspec"
+gem 'rack-test'
 
 group :development, :test do
   gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
