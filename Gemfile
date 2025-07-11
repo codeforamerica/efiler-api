@@ -11,6 +11,7 @@ gem "rubyzip"
 gem "rerun"
 gem "rspec"
 gem 'rack-test'
+gem "jwt"
 
 group :development, :test do
   gem "byebug", platforms: [:mri, :mingw, :x64_mingw]

@@ -10,13 +10,7 @@ download_paths = [
 # If the file already exists, do not re-download.
 exit if download_paths.all? { |p| File.exist?(p) }
 
-# On Circle CI, get AWS credentials from environment.
-# In staging, demo, and prod environment, get credentials from Rails credentials.
-#
-# In development, download the file manually from S3. This allows us to avoid storing any AWS credentials in the development secrets.
-access_key_id = "fake-access-key-id"
-secret_access_key = "fake-access-key"
-credentials =  Aws::Credentials.new(access_key_id, secret_access_key)
+credentials = Aws::Credentials.new(ENV["AWS_ACCESS_KEY_ID"], ENV["AWS_SECRET_ACCESS_KEY"])
 
 download_paths.each do |path|
   Aws::S3::Client.new(region: 'us-east-1', credentials: credentials).get_object(
