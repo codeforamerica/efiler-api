@@ -5,6 +5,8 @@ require 'jwt'
 require 'dotenv/load'
 
 require_relative "efiler_service"
+require_relative "acks"
+require_relative "submissions_status"
 require_relative "extensions/jwt_auth"
 
 before do
@@ -54,18 +56,20 @@ rescue StandardError => e
 end
 
 get '/submissions-status/:id' do
-  EfilerService.run_efiler_command("test", "submissions-status", params[:id])
+  response = EfilerService.run_efiler_command("test", "submissions-status", params[:id])
+  submission_statuses = SubmissionsStatus.handle_submission_status_response(response)
   status 200
-  { foo: :bar }.to_json
+  submission_statuses.to_json
 rescue StandardError => e
   status 500
   { exception: e.message }.to_json
 end
 
 get '/acks/:id' do
-  EfilerService.run_efiler_command("test", "acks", params[:id])
+  response  = EfilerService.run_efiler_command("test", "acks", params[:id])
+  acks = Acks.handle_ack_response(response)
   status 200
-  { foo: :bar }.to_json
+  acks.to_json
 rescue StandardError => e
   status 500
   { exception: e.message }.to_json

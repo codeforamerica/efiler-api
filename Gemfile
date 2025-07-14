@@ -13,6 +13,7 @@ gem "rerun"
 gem "rspec"
 gem 'rack-test'
 gem "jwt"
+gem "nokogiri"
 
 group :development do
   gem "dotenv"
