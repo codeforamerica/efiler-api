@@ -55,8 +55,8 @@ rescue StandardError => e
   { exception: e.message }.to_json
 end
 
-get '/submissions-status/:id' do
-  response = EfilerService.run_efiler_command("test", "submissions-status", params[:id])
+get '/submissions-status' do
+  response = EfilerService.run_efiler_command("test", "submissions-status", *params[:id])
   submission_statuses = SubmissionsStatus.handle_submission_status_response(response)
   status 200
   submission_statuses.to_json
@@ -65,8 +65,8 @@ rescue StandardError => e
   { exception: e.message }.to_json
 end
 
-get '/acks/:id' do
-  response  = EfilerService.run_efiler_command("test", "acks", params[:id])
+get '/acks' do
+  response  = EfilerService.run_efiler_command("test", "acks", *params[:id])
   acks = Acks.handle_ack_response(response)
   status 200
   acks.to_json
