@@ -7,11 +7,16 @@ gem "sinatra", :github => "sinatra/sinatra"
 gem "rackup", "~> 2.2"
 gem "puma", "~> 6.6"
 gem "aws-sdk-s3"
+gem "aws-sdk-secretsmanager"
 gem "rubyzip"
 gem "rerun"
 gem "rspec"
 gem 'rack-test'
 gem "jwt"
+
+group :development do
+  gem "dotenv"
+end
 
 group :development, :test do
   gem "byebug", platforms: [:mri, :mingw, :x64_mingw]

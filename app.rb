@@ -1,6 +1,9 @@
+require 'aws-sdk-secretsmanager'
 require 'sinatra'
 require 'pry-byebug'
 require 'jwt'
+require 'dotenv/load'
+
 require_relative "efiler_service"
 require_relative "extensions/jwt_auth"
 
@@ -16,6 +19,22 @@ end
 
 # TODO: this endpoint should take a submission ID
 get '/efile' do
+
+  client = Aws::SecretsManager::Client.new(
+    region: 'us-east-1',
+    credentials: Aws::Credentials.new(ENV["AWS_ACCESS_KEY_ID"], ENV["AWS_SECRET_ACCESS_KEY"])
+  )
+  begin
+    get_secret_value_response = client.get_secret_value(secret_id: "efiler-api-client-mef-credentials/#{api_client_name}")
+  rescue StandardError => e
+    # For a list of exceptions thrown, see
+    # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
+    raise e
+  end
+
+  secret = JSON.parse(get_secret_value_response.secret_string)
+  puts secret
+
   puts "doing efile"
   EfilerService.run_efiler_command("test", "submissions-status", "4414662025127ohzns0q") # a test submission id from demo
   { foo: :bar }.to_json

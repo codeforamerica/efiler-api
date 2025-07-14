@@ -1,3 +1,4 @@
 /.idea
 /tmp/*
 /gyr_efiler/*.zip
+/.env
