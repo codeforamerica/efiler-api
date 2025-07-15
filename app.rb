@@ -3,6 +3,7 @@ require 'sinatra'
 require 'pry-byebug'
 require 'jwt'
 require 'dotenv/load'
+require 'nokogiri'
 
 require_relative "efiler_service"
 require_relative "acks"
@@ -19,7 +20,6 @@ get '/' do
   'Hello world!'
 end
 
-# TODO: this endpoint should take a submission ID
 get '/efile' do
 
   client = Aws::SecretsManager::Client.new(
@@ -45,14 +45,26 @@ rescue StandardError => e
   { exception: e.detailed_message }.to_json
 end
 
-post '/submit/:id' do
-  EfilerService.run_efiler_command("test", "submit", params[:id])
-  # TODO: maybe add a check if the response was successful
-  status 201
-  { foo: :bar }.to_json
+post '/submit' do
+  submission_filename = params["submission_bundle"]["filename"]
+  result = Tempfile.create(submission_filename) do |f|
+    f.write(params["submission_bundle"]["tempfile"].read)
+    f.flush
+    EfilerService.run_efiler_command("test", "submit", f.path)
+  end
+
+  doc = Nokogiri::XML(result)
+  if doc.css('SubmissionReceiptList SubmissionReceiptGrp SubmissionId').text.strip == File.basename(submission_filename, ".zip")
+    status 201
+    { status: "transmitted", result: result }.to_json
+  else
+    status 400
+    { status: "failed", result: result }.to_json
+  end
+
 rescue StandardError => e
-  status 500
-  { exception: e.message }.to_json
+    status 500
+    { exception: e.message }.to_json
 end
 
 get '/submissions-status' do

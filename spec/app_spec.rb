@@ -22,6 +22,7 @@ RSpec.describe 'app.rb' do
 
       post "/submit/#{id}"
       expect(last_response.status).to eq(201)
+      expect(EfilerService).to have_received(:run_efiler_command).with("test", "submit", id)
     end
   end
 
@@ -32,9 +33,9 @@ RSpec.describe 'app.rb' do
 
     it 'creates an item and returns a success message' do
       id = "456"
-
       get "/submissions-status/#{id}"
       expect(last_response.status).to eq(200)
+      expect(EfilerService).to have_received(:run_efiler_command).with("test", "submissions-status", id)
     end
   end
 
@@ -45,9 +46,9 @@ RSpec.describe 'app.rb' do
 
     it 'creates an item and returns a success message' do
       id = "789"
-
       get "/acks/#{id}"
       expect(last_response.status).to eq(200)
+      expect(EfilerService).to have_received(:run_efiler_command).with("test", "acks", id)
     end
   end
 end
