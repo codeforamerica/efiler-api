@@ -28,27 +28,26 @@ RSpec.describe 'app.rb' do
 
   describe "GET /submissions-status/:id" do
     before do
-      allow(EfilerService).to receive(:run_efiler_command).with("test", "submissions-status", '456').and_return({})
+      allow(EfilerService).to receive(:run_efiler_command).with("test", "submissions-status", '123','456').and_return({})
     end
 
     it 'creates an item and returns a success message' do
-      id = "456"
-      get "/submissions-status/#{id}"
+      get "/submissions-status?id[]=123&id[]=456"
       expect(last_response.status).to eq(200)
-      expect(EfilerService).to have_received(:run_efiler_command).with("test", "submissions-status", id)
+      expect(EfilerService).to have_received(:run_efiler_command).with("test", "submissions-status", "123", "456")
     end
   end
 
   describe "GET /acks/:id" do
     before do
-      allow(EfilerService).to receive(:run_efiler_command).with("test", "acks", '789').and_return({})
+      allow(EfilerService).to receive(:run_efiler_command).with("test", "acks", '123','456').and_return({})
     end
 
     it 'creates an item and returns a success message' do
       id = "789"
-      get "/acks/#{id}"
+      get "/acks?id[]=123&id[]=456"
       expect(last_response.status).to eq(200)
-      expect(EfilerService).to have_received(:run_efiler_command).with("test", "acks", id)
+      expect(EfilerService).to have_received(:run_efiler_command).with("test", "acks", '123','456')
     end
   end
 end
