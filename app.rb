@@ -47,10 +47,10 @@ end
 
 post '/submit' do
   submission_filename = params["submission_bundle"]["filename"]
-  result = Tempfile.create(submission_filename) do |f|
-    f.write(params["submission_bundle"]["tempfile"].read)
-    f.flush
-    EfilerService.run_efiler_command("test", "submit", f.path)
+  result = Dir.mktmpdir do |dir|
+    submission_path = File.join(dir, submission_filename)
+    FileUtils.cp params["submission_bundle"]["tempfile"].path, submission_path
+    EfilerService.run_efiler_command("test", "submit", submission_path)
   end
 
   doc = Nokogiri::XML(result)
