@@ -49,7 +49,7 @@ post '/submit' do
   submission_filename = params["submission_bundle"]["filename"]
   result = Dir.mktmpdir do |dir|
     submission_path = File.join(dir, submission_filename)
-    FileUtils.cp params["submission_bundle"]["tempfile"].path, submission_path
+    FileUtils.mv params["submission_bundle"]["tempfile"].path, submission_path
     EfilerService.run_efiler_command("test", "submit", submission_path)
   end
 
