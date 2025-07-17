@@ -1,4 +1,5 @@
 require "zip"
+require "dotenv/load"
 
 # TODO: implement .with_lock or equivalent to prevent too many connections with mef (?)
 class EfilerService
@@ -110,10 +111,9 @@ class EfilerService
   end
 
   def self.config_values
-    # TODO add real credentials
-    app_sys_id = "fake_app_sys_id"
-    efile_cert_base64 = "fake_efile_cert_base64"
-    etin = "fake_etin"
+    app_sys_id = ENV["IRS_APP_SYS_ID"]
+    efile_cert_base64 = ENV["IRS_EFILE_CERT_BASE64"]
+    etin = ENV["IRS_ETIN"]
     if app_sys_id.nil? || efile_cert_base64.nil? || etin.nil?
       raise Error.new("Missing app_sys_id and/or efile_cert_base64 and/or etin configuration")
     end
