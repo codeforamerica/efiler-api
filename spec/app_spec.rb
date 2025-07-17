@@ -19,9 +19,9 @@ RSpec.describe 'app.rb' do
           <SubmissionReceiptGrp>
             <SubmissionId>
               fake_submission_bundle
-            </SubmissionReceiptList>
+            </SubmissionId>
           </SubmissionReceiptGrp>
-        </SubmissionId>
+        </SubmissionReceiptList>
       XML
     end
 
@@ -31,9 +31,7 @@ RSpec.describe 'app.rb' do
     end
 
     it 'creates an item and returns a success message' do
-      submission_id = "fake_submission_bundle"
-
-      file = Rack::Test::UploadedFile.new("spec/fixtures/#{submission_id}.zip", 'application/zip')
+      file = Rack::Test::UploadedFile.new("spec/fixtures/fake_submission_bundle.zip", 'application/zip')
 
       post "/submit", submission_bundle: file
       expect(last_response.status).to eq(201)
