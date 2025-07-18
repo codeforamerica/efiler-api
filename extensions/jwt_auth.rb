@@ -32,6 +32,13 @@ module Sinatra
       token = JWT::EncodedToken.new(authorization_header.delete_prefix("Bearer "))
       token.unverified_payload["iss"]
     end
+
+    def get_api_client_mef_credentials
+      aws_credentials = Aws::Credentials.new(ENV["AWS_ACCESS_KEY_ID"], ENV["AWS_SECRET_ACCESS_KEY"])
+      aws_client = Aws::SecretsManager::Client.new(region: 'us-east-1', credentials: aws_credentials)
+      response = aws_client.get_secret_value(secret_id: "efiler-api-client-mef-credentials/#{api_client_name}")
+      JSON.parse(response.secret_string).transform_keys { |k| k.to_sym }
+    end
   end
 
   register JwtAuth

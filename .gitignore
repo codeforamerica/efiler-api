@@ -2,3 +2,4 @@
 /tmp/*
 /gyr_efiler/*.zip
 /.env
+.DS_Store
