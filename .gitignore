@@ -3,3 +3,4 @@
 /gyr_efiler/*.zip
 /.env
 .DS_Store
+.byebug_history

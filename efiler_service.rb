@@ -19,10 +19,10 @@ class EfilerService
     /HTTP transport error: javax.net.ssl.SSLException/,
   ]
 
-  def self.run_efiler_command(mef_config, *args)
+  def self.run_efiler_command(mef_credentials, *args)
     Dir.mktmpdir do |working_directory|
       FileUtils.mkdir_p(File.join(working_directory, "output", "log"))
-      config_dir = create_config_dir(working_directory, mef_config)
+      config_dir = create_config_dir(working_directory, mef_credentials)
       classes_zip_path = ensure_gyr_efiler_downloaded
 
       # On macOS, "java" will show a confusing pop-up if you run it without a JVM installed. Check for that and exit early.
@@ -33,7 +33,7 @@ class EfilerService
       # /Library/Java/JavaVirtualMachines
       java = ENV["VITA_MIN_JAVA_HOME"] ? File.join(ENV["VITA_MIN_JAVA_HOME"], "bin", "java") : "java"
 
-      argv = [java, "-cp", classes_zip_path, "org.codeforamerica.gyr.efiler.App", config_dir, mef_config[:mef_env], *args]
+      argv = [java, "-cp", classes_zip_path, "org.codeforamerica.gyr.efiler.App", config_dir, mef_credentials[:mef_env], *args]
       pid = Process.spawn(*argv,
                           unsetenv_others: true,
                           chdir: working_directory,
@@ -60,8 +60,8 @@ class EfilerService
 
   private
 
-  def self.create_config_dir(working_directory, mef_config)
-    mef_config => { app_sys_id:, etin:, cert_base64: }
+  def self.create_config_dir(working_directory, mef_credentials)
+    mef_credentials => { app_sys_id:, etin:, cert_base64: }
 
     config_dir = File.join(working_directory, "gyr_efiler_config")
     FileUtils.mkdir(config_dir)
