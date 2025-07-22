@@ -8,9 +8,7 @@ Download [Postman](https://www.postman.com) to make API requests. This is the ta
 
 Download the test client private keys from Lastpass. There are two in a note called "EFiler API testing files".
 
-In the variables tab of the Efiler API collection in Postman, set the api_client_private_key to the contents of one of the private keys you downloaded using `cat <private_key_file> | pbcopy`.
-
-Ensure that you ONLY change the "Current version" of the variable, as the "Initial version" will be synced up to Postman's servers and we're trying to avoid that.
+In the variables tab of the Efiler API collection in Postman, set the api_client_private_key to the contents of one of the private keys you downloaded using `cat <private_key_file> | pbcopy`. Ensure that you ONLY change the "Current version" of the variable, as the "Initial version" will be synced up to Postman's servers and we're trying to avoid that.
 
 Then, change the "Current value" of the `api_client_name` variable to the base name of the file you chose (e.g. `efiler_api_test_client` without the `.key`) and _save the collection_ with Cmd-S.
 
