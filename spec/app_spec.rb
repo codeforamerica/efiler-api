@@ -1,18 +1,18 @@
-ENV['RACK_ENV'] = 'test'
+ENV["RACK_ENV"] = "test"
 
 require "spec_helper"
 require "rack/test"
-require './app.rb'
-require './efiler_service.rb'
+require "./app"
+require "./efiler_service"
 
-RSpec.describe 'app.rb' do
+RSpec.describe "app.rb" do
   include Rack::Test::Methods
 
   def app
     Sinatra::Application
   end
 
-  let(:mef_credentials) { { mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz" } }
+  let(:mef_credentials) { {mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz"} }
 
   before do
     allow_any_instance_of(Sinatra::Application).to receive(:verify_client_name_and_signature).and_return(true)
@@ -36,8 +36,8 @@ RSpec.describe 'app.rb' do
       allow(EfilerService).to receive(:run_efiler_command).and_return(response_xml)
     end
 
-    it 'creates an item and returns a success message' do
-      file = Rack::Test::UploadedFile.new("spec/fixtures/fake_submission_bundle.zip", 'application/zip')
+    it "creates an item and returns a success message" do
+      file = Rack::Test::UploadedFile.new("spec/fixtures/fake_submission_bundle.zip", "application/zip")
 
       post "/submit", submission_bundle: file
       expect(last_response.status).to eq(201)
@@ -50,7 +50,7 @@ RSpec.describe 'app.rb' do
       allow(EfilerService).to receive(:run_efiler_command).and_return({})
     end
 
-    it 'creates an item and returns a success message' do
+    it "creates an item and returns a success message" do
       get "/submissions-status?id[]=123&id[]=456"
       expect(last_response.status).to eq(200)
       expect(EfilerService).to have_received(:run_efiler_command).with(mef_credentials, "submissions-status", "123", "456")
@@ -62,10 +62,10 @@ RSpec.describe 'app.rb' do
       allow(EfilerService).to receive(:run_efiler_command).and_return({})
     end
 
-    it 'creates an item and returns a success message' do
+    it "creates an item and returns a success message" do
       get "/acks?id[]=123&id[]=456"
       expect(last_response.status).to eq(200)
-      expect(EfilerService).to have_received(:run_efiler_command).with(mef_credentials, "acks", '123', '456')
+      expect(EfilerService).to have_received(:run_efiler_command).with(mef_credentials, "acks", "123", "456")
     end
   end
 end

@@ -18,7 +18,7 @@ class SubmissionsStatus
     # The service returns multiple status records for the each submission id. It looks like they are in reverse
     # chronological order (But are not properly date stamped), although we have seen examples where they are out of
     # order. Regardless, we return each submission ID's list of statuses in the order they are encountered in the XML
-    doc.css('StatusRecordGrp').each_with_object({}) do |xml, groups_by_irs_submission_id|
+    doc.css("StatusRecordGrp").each_with_object({}) do |xml, groups_by_irs_submission_id|
       irs_submission_id = xml.css("SubmissionId").text.strip
       if groups_by_irs_submission_id[irs_submission_id]
         groups_by_irs_submission_id[irs_submission_id].append(xml)
@@ -40,7 +40,7 @@ class SubmissionsStatus
   end
 
   def self.status_from_xml_node(xml_node)
-    xml_node&.css('SubmissionStatusTxt')&.text&.strip
+    xml_node&.css("SubmissionStatusTxt")&.text&.strip
   end
 
   def self.submission_status_to_state(status)
