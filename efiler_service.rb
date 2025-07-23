@@ -1,4 +1,5 @@
 require "zip"
+require "dotenv/load"
 
 # TODO: implement .with_lock or equivalent to prevent too many connections with mef (?)
 class EfilerService
@@ -18,13 +19,11 @@ class EfilerService
     /HTTP transport error: javax.net.ssl.SSLException/,
   ]
 
-  def self.run_efiler_command(*args)
+  def self.run_efiler_command(mef_credentials, *args)
     Dir.mktmpdir do |working_directory|
       FileUtils.mkdir_p(File.join(working_directory, "output", "log"))
-      ensure_config_dir_prepared
-
+      config_dir = create_config_dir(working_directory, mef_credentials)
       classes_zip_path = ensure_gyr_efiler_downloaded
-      config_dir = File.join(Dir.pwd, "tmp", "gyr_efiler", "gyr_efiler_config")
 
       # On macOS, "java" will show a confusing pop-up if you run it without a JVM installed. Check for that and exit early.
       unless system('java', '-version', out: "/dev/null", err: '/dev/null')
@@ -34,7 +33,7 @@ class EfilerService
       # /Library/Java/JavaVirtualMachines
       java = ENV["VITA_MIN_JAVA_HOME"] ? File.join(ENV["VITA_MIN_JAVA_HOME"], "bin", "java") : "java"
 
-      argv = [java, "-cp", classes_zip_path, "org.codeforamerica.gyr.efiler.App", config_dir, *args]
+      argv = [java, "-cp", classes_zip_path, "org.codeforamerica.gyr.efiler.App", config_dir, mef_credentials[:mef_env], *args]
       pid = Process.spawn(*argv,
                           unsetenv_others: true,
                           chdir: working_directory,
@@ -61,18 +60,19 @@ class EfilerService
 
   private
 
-  def self.ensure_config_dir_prepared
-    config_dir = File.join(Dir.pwd, "tmp", "gyr_efiler", "gyr_efiler_config")
-    FileUtils.mkdir_p(config_dir)
-    return if File.exist?(File.join(config_dir, '.ready'))
+  def self.create_config_dir(working_directory, mef_credentials)
+    mef_credentials => { app_sys_id:, etin:, cert_base64: }
+
+    config_dir = File.join(working_directory, "gyr_efiler_config")
+    FileUtils.mkdir(config_dir)
 
     config_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-config-#{CURRENT_VERSION}.zip"))[0]
     raise StandardError.new("Please run `ruby scripts/download_gyr_efiler.rb` then try again") if config_zip_path.nil?
 
-    system!("unzip -o #{config_zip_path} -d #{File.join(Dir.pwd,"tmp", "gyr_efiler")}")
+    system!("unzip -o #{config_zip_path} -d #{working_directory}")
 
     local_efiler_repo_config_path = File.expand_path('../gyr-efiler/gyr_efiler_config')
-    if ENV['RACK_ENV'] && File.exist?(local_efiler_repo_config_path)
+    if ENV['DEVELOPING_GYR_EFILER'] && File.exist?(local_efiler_repo_config_path)
       begin
         FileUtils.cp(File.join(local_efiler_repo_config_path, 'gyr_secrets.properties'), config_dir)
         FileUtils.cp(File.join(local_efiler_repo_config_path, 'secret_key_and_cert.p12.key'), config_dir)
@@ -80,17 +80,19 @@ class EfilerService
         raise StandardError.new("Please clone the gyr-efiler repo to ../gyr-efiler and follow its README")
       end
     else
-      app_sys_id, efile_cert_base64, etin = config_values
-
-      properties_content = <<~PROPERTIES
-          etin=#{etin}
-          app_sys_id=#{app_sys_id}
-        PROPERTIES
-      File.write(File.join(config_dir, 'gyr_secrets.properties'), properties_content)
-      File.write(File.join(config_dir, 'secret_key_and_cert.p12.key'), Base64.decode64(efile_cert_base64), mode: "wb")
+      write_mef_credentials_to_config_dir(app_sys_id, cert_base64, etin, config_dir)
     end
 
-    FileUtils.touch(File.join(config_dir, '.ready'))
+    config_dir
+  end
+
+  def self.write_mef_credentials_to_config_dir(app_sys_id, efile_cert_base64, etin, config_dir)
+    properties_content = <<~PROPERTIES
+      etin=#{etin}
+      app_sys_id=#{app_sys_id}
+    PROPERTIES
+    File.write(File.join(config_dir, 'gyr_secrets.properties'), properties_content)
+    File.write(File.join(config_dir, 'secret_key_and_cert.p12.key'), Base64.decode64(efile_cert_base64), mode: "wb")
   end
 
   def self.ensure_gyr_efiler_downloaded
@@ -107,18 +109,6 @@ class EfilerService
 
       return zipfile.read(entries.first.name)
     end
-  end
-
-  def self.config_values
-    # TODO add real credentials
-    app_sys_id = "fake_app_sys_id"
-    efile_cert_base64 = "fake_efile_cert_base64"
-    etin = "fake_etin"
-    if app_sys_id.nil? || efile_cert_base64.nil? || etin.nil?
-      raise Error.new("Missing app_sys_id and/or efile_cert_base64 and/or etin configuration")
-    end
-
-    [app_sys_id, efile_cert_base64, etin]
   end
 
   def self.system!(*args)
