@@ -1,9 +1,9 @@
 require "spec_helper"
-require "./efiler_service.rb"
+require "./efiler_service"
 require "tmpdir"
 
 RSpec.describe EfilerService do
-  let(:mef_credentials) { { mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz" } }
+  let(:mef_credentials) { {mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz"} }
 
   before do
     allow(described_class).to receive(:create_config_dir)
@@ -23,9 +23,7 @@ RSpec.describe EfilerService do
 
       before do
         allow(Process).to receive(:spawn) do |_argv, chdir:, unsetenv_others:, in:|
-          File.open("#{chdir}/output/gyr-efiler-output.zip", 'wb') do |f|
-            f.write(zip_data)
-          end
+          File.binwrite("#{chdir}/output/gyr-efiler-output.zip", zip_data)
 
           `true` # Run a successful command so that $? is set
 
@@ -43,9 +41,7 @@ RSpec.describe EfilerService do
     context "command failure" do
       before do
         allow(Process).to receive(:spawn) do |_argv, chdir:, unsetenv_others:, in:|
-          File.open("#{chdir}/audit_log.txt", 'wb') do |f|
-            f.write(log_output)
-          end
+          File.binwrite("#{chdir}/audit_log.txt", log_output)
 
           `false` # Run a command so that $? is set
 
