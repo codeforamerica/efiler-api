@@ -1,8 +1,10 @@
+require "dotenv"
+Dotenv.load(overwrite: true)
+
 require "aws-sdk-secretsmanager"
 require "sinatra"
 require "pry-byebug"
 require "jwt"
-require "dotenv/load"
 require "nokogiri"
 
 require_relative "efiler_service"
