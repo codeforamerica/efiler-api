@@ -68,17 +68,7 @@ class EfilerService
 
     system!("unzip -o #{config_zip_path} -d #{working_directory}")
 
-    local_efiler_repo_config_path = File.expand_path("../gyr-efiler/gyr_efiler_config")
-    if ENV["DEVELOPING_GYR_EFILER"] && File.exist?(local_efiler_repo_config_path)
-      begin
-        FileUtils.cp(File.join(local_efiler_repo_config_path, "gyr_secrets.properties"), config_dir)
-        FileUtils.cp(File.join(local_efiler_repo_config_path, "secret_key_and_cert.p12.key"), config_dir)
-      rescue
-        raise StandardError.new("Please clone the gyr-efiler repo to ../gyr-efiler and follow its README")
-      end
-    else
-      write_mef_credentials_to_config_dir(app_sys_id, cert_base64, etin, config_dir)
-    end
+    write_mef_credentials_to_config_dir(app_sys_id, cert_base64, etin, config_dir)
 
     config_dir
   end
