@@ -14,14 +14,9 @@ module Sinatra
       authorization_header = request.env["HTTP_AUTHORIZATION"]
       token = JWT::EncodedToken.new(authorization_header.delete_prefix("Bearer "))
 
-      allowed_client_names = Dir.children("client_public_keys").map do |public_key_filename|
-        File.basename(public_key_filename, ".pub")
-      end
-      token.verify_claims!(iss: allowed_client_names)
-
-      client_name = token.unverified_payload["iss"]
-      client_public_key_filename = File.join("client_public_keys", "#{client_name}.pub")
-      client_public_key = OpenSSL::PKey::RSA.new(File.read(client_public_key_filename))
+      client_credentials = get_api_client_mef_credentials
+      client_public_key_base64 = client_credentials[:efiler_api_public_key]
+      client_public_key = OpenSSL::PKey::RSA.new(client_public_key_base64)
       token.verify_signature!(algorithm: "RS256", key: client_public_key)
     rescue JWT::InvalidIssuerError
       halt 401, {error_message: "Invalid client ID in JWT"}.to_json
