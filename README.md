@@ -1,6 +1,8 @@
 ## Exercising the API locally
 
-Copy the "EFiler API dev environment variables" from LastPass, create a .env file locally, and place the contents there.
+Configure profile for `gyr-prod` following these [instructions here](https://www.notion.so/cfa/AWS-Identity-Center-e8a28122b2f44595a2ef56b46788ce2c) and the following command `aws configure sso --profile gyr-prod` and following the rest of the instructions
+
+Create .env file in the root with the following `AWS_PROFILE=gyr-prod`
 
 To install the Java GYR e-filer code, run the following command: `ruby scripts/download_gyr_efiler.rb`
 
