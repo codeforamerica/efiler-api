@@ -1,5 +1,4 @@
 require "zip"
-require "dotenv/load"
 
 # TODO: implement .with_lock or equivalent to prevent too many connections with mef (?)
 class EfilerService
