@@ -1,4 +1,4 @@
-require "dotenv"
+require 'dotenv'
 Dotenv.load(overwrite: true)
 
 require "aws-sdk-secretsmanager"
