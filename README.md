@@ -1,6 +1,8 @@
 ## Exercising the API locally
 
-Copy the "EFiler API dev environment variables" from LastPass, create a .env file locally, and place the contents there.
+Configure profile for `gyr-prod` following these [instructions here](https://www.notion.so/cfa/AWS-Identity-Center-e8a28122b2f44595a2ef56b46788ce2c) and the following command `aws configure sso --profile gyr-prod` and following the rest of the instructions
+
+Create .env file in the root with the following `AWS_PROFILE=gyr-prod`
 
 To install the Java GYR e-filer code, run the following command: `ruby scripts/download_gyr_efiler.rb`
 
@@ -15,3 +17,7 @@ Then, change the "Current value" of the `api_client_name` variable to the base n
 Additionally, to send `/submit` requests from Postman, you must provide a submission_bundle with the request. You can download one from the same "EFiler API testing files" note in Lastpass. In the `Body` tab of the `Submit` request, remove any contents from the `submission_bundle`'s Value field and replace it with the file you downloaded by clicking the field then selecting "+ New file from local machine".
 
 To develop the codebase without restarting the server, install rerun with: `gem install rerun` and to run the application run `rerun ruby app.rb`
+
+## Running the Linter
+
+To run the linter locally, run the following command: `bundle exec standardrb --fix`. If you forget to do this, the linter will run when a branch pushed up. To ignore the linter, here is a [guide](https://github.com/standardrb/standard?tab=readme-ov-file#ignoring-errors).
