@@ -1,8 +1,8 @@
 ## Exercising the API locally
 
-Configure profile for `gyr-prod` following these [instructions here](https://www.notion.so/cfa/AWS-Identity-Center-e8a28122b2f44595a2ef56b46788ce2c) and the following command `aws configure sso --profile gyr-prod` and following the rest of the instructions
+Configure profile for `efiler-api` (or whatever you want to call it) following these [instructions here](https://www.notion.so/cfa/AWS-Identity-Center-e8a28122b2f44595a2ef56b46788ce2c#ef1c6c77703b4215bbe1953de4692054) and the following command `aws configure sso --profile efiler-api` and following the rest of the instructions. Choose the "E-Filer API - Non-Prod" account.
 
-Create .env file in the root with the following `AWS_PROFILE=gyr-prod`
+Create .env file in the root with the following `AWS_PROFILE=efiler-api` (or whatever you named the profile)
 
 To install the Java GYR e-filer code, run the following command: `ruby scripts/download_gyr_efiler.rb`
 
