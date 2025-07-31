@@ -48,7 +48,7 @@ jobs:
         run: |
           echo "tag:$IMAGE_TAG"
           aws ssm put-parameter \
-            --name  /efiler-api/demo/version \
+            --name  /efiler-api/demo/web/version \
             --value "$IMAGE_TAG" \
             --overwrite
 
