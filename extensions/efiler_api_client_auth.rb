@@ -41,7 +41,7 @@ module Sinatra
     rescue Seahorse::Client::NetworkingError
       halt 503, {error_message: "Failed to reach AWS to retrieve API client's MeF credentials"}.to_json
     rescue
-      halt 500, {aws_client: aws_client, response: response}.to_json
+      halt 500, {aws_client: aws_client, secret_id: "efiler-api-client-mef-credentials/#{api_client_name}"}.to_json
     end
   end
 
