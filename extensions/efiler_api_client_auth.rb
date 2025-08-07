@@ -18,8 +18,6 @@ module Sinatra
       client_public_key_base64 = client_credentials[:efiler_api_public_key]
       client_public_key = OpenSSL::PKey::RSA.new(Base64.decode64(client_public_key_base64))
       token.verify_signature!(algorithm: "RS256", key: client_public_key)
-    rescue JWT::InvalidIssuerError
-      halt 401, {error_message: "Invalid client ID in JWT"}.to_json
     rescue JWT::VerificationError
       halt 401, {error_message: "Client ID does not match private key used to sign JWT"}.to_json
     rescue
