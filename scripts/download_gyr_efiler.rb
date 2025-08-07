@@ -14,7 +14,7 @@ exit if download_paths.all? { |p| File.exist?(p) }
 download_paths.each do |path|
   Aws::S3::Client.new(region: "us-east-1").get_object(
     response_target: path,
-    bucket: "gyr-efiler-releases",
+    bucket: "gyr-efiler-release",
     key: File.basename(path)
   )
 end
