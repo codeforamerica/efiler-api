@@ -56,8 +56,8 @@ get "/submissions-status" do
   submission_statuses.to_json
 rescue EfilerService::RetryableError
   halt 503, {error_message: "Failed with retryable error while getting submissions-status"}.to_json
-rescue
-  halt 500, {error_message: "Failed while getting submissions-status"}.to_json
+rescue => e
+  halt 500, {raw_message: e}.to_json
 end
 
 get "/acks" do
