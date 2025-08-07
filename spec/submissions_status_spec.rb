@@ -1,9 +1,9 @@
-require 'spec_helper'
-require './submissions_status'
+require "spec_helper"
+require "./submissions_status"
 
 RSpec.describe SubmissionsStatus do
-  describe '.xml_node_with_most_recent_submission_status' do
-    it 'gets the most recent xml node indicating a transmitted state in a correctly ordered list of statuses' do
+  describe ".xml_node_with_most_recent_submission_status" do
+    it "gets the most recent xml node indicating a transmitted state in a correctly ordered list of statuses" do
       xml_nodes = [
         Nokogiri::XML(
           <<~XML
@@ -43,10 +43,10 @@ RSpec.describe SubmissionsStatus do
         )
       ]
       xml_node = described_class.xml_node_with_most_recent_submission_status(xml_nodes)
-      expect(xml_node.css('SubmissionStatusTxt').text).to eq 'Received by State'
+      expect(xml_node.css("SubmissionStatusTxt").text).to eq "Received by State"
     end
 
-    it 'gets the most recent xml node indicating a ready-for-ack state in a correctly ordered list of statuses' do
+    it "gets the most recent xml node indicating a ready-for-ack state in a correctly ordered list of statuses" do
       xml_nodes = [
         Nokogiri::XML(
           <<~XML
@@ -95,10 +95,10 @@ RSpec.describe SubmissionsStatus do
         )
       ]
       xml_node = described_class.xml_node_with_most_recent_submission_status(xml_nodes)
-      expect(xml_node.css('SubmissionStatusTxt').text).to eq 'Acknowledgement Received from State'
+      expect(xml_node.css("SubmissionStatusTxt").text).to eq "Acknowledgement Received from State"
     end
 
-    it 'gets the most recent xml node indicating a ready-for-ack state in an incorrectly ordered list of statuses' do
+    it "gets the most recent xml node indicating a ready-for-ack state in an incorrectly ordered list of statuses" do
       xml_nodes = [
         Nokogiri::XML(
           <<~XML
@@ -147,12 +147,12 @@ RSpec.describe SubmissionsStatus do
         )
       ]
       xml_node = described_class.xml_node_with_most_recent_submission_status(xml_nodes)
-      expect(xml_node.css('SubmissionStatusTxt').text).to eq 'Acknowledgement Received from State'
+      expect(xml_node.css("SubmissionStatusTxt").text).to eq "Acknowledgement Received from State"
     end
   end
 
-  describe '.status_from_xml_node' do
-    it 'gets the status from the correct node' do
+  describe ".status_from_xml_node" do
+    it "gets the status from the correct node" do
       xml_node = Nokogiri::XML(
         <<~XML
           <StatusRecordGrp>
@@ -163,25 +163,25 @@ RSpec.describe SubmissionsStatus do
         XML
       )
 
-      expect(described_class.status_from_xml_node(xml_node)).to eq 'Acknowledgement Received from State'
+      expect(described_class.status_from_xml_node(xml_node)).to eq "Acknowledgement Received from State"
     end
   end
 
-  describe '.submission_status_to_state' do
-    it 'interprets transmitted statuses successfully' do
+  describe ".submission_status_to_state" do
+    it "interprets transmitted statuses successfully" do
       described_class::TRANSMITTED_STATUSES.each do |status|
         expect(described_class.submission_status_to_state(status)).to eq :transmitted
       end
     end
 
-    it 'interprets ready_for_ack statuses successfully' do
+    it "interprets ready_for_ack statuses successfully" do
       described_class::READY_FOR_ACK_STATUSES.each do |status|
         expect(described_class.submission_status_to_state(status)).to eq :ready_for_ack
       end
     end
 
-    it 'interprets unknown states as failed' do
-      expect(described_class.submission_status_to_state('My dog ate it')).to eq :failed
+    it "interprets unknown states as failed" do
+      expect(described_class.submission_status_to_state("My dog ate it")).to eq :failed
     end
   end
 end
