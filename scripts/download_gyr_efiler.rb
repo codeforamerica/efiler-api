@@ -1,6 +1,5 @@
 require "zip"
 require "aws-sdk-s3"
-require "dotenv/load"
 
 CURRENT_VERSION = "d8645b36cf2a9faa0593edb703411d8f4bea10df"
 download_paths = [
