@@ -9,13 +9,13 @@ gem "puma", "~> 6.6"
 gem "aws-sdk-s3"
 gem "aws-sdk-secretsmanager"
 gem "rubyzip"
-gem "rerun"
 gem "jwt"
 gem "nokogiri"
 
 group :development do
   gem "dotenv"
   gem "standard"
+  gem "rerun"
 end
 
 group :development, :test do
