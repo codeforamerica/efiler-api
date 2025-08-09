@@ -1,7 +1,7 @@
-if %w[development test].include? ENV["RACK_ENV"]
-  require "dotenv"
-  Dotenv.load(overwrite: true)
-end
+# if %w[development test].include? ENV["RACK_ENV"]
+#   require "dotenv"
+#   Dotenv.load(overwrite: true)
+# end
 
 require "zip"
 require "aws-sdk-s3"
