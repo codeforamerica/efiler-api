@@ -44,6 +44,10 @@ jobs:
         run: |
           docker build -t 669097061340.dkr.ecr.us-east-1.amazonaws.com/efiler-api-demo-web:${{env.IMAGE_TAG}} --platform linux/amd64 .
           docker push 669097061340.dkr.ecr.us-east-1.amazonaws.com/efiler-api-demo-web:${{env.IMAGE_TAG}}
+        with:
+          secrets: |
+            "GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID=#{{secrets.GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID}}"
+            "GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY=#{{secrets.GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY}}"
 
       - name: Update SSM Version Parameter
         run: |
