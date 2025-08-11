@@ -1,11 +1,10 @@
-# if %w[development test].include? ENV["RACK_ENV"]
-#   require "dotenv"
-#   Dotenv.load(overwrite: true)
-# end
+if %w[development test].include? ENV["RACK_ENV"]
+  require "dotenv"
+  Dotenv.load(overwrite: true)
+end
 
 require "aws-sdk-secretsmanager"
 require "sinatra"
-# require "pry-byebug"
 require "jwt"
 require "nokogiri"
 
