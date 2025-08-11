@@ -9,18 +9,20 @@ gem "puma", "~> 6.6"
 gem "aws-sdk-s3"
 gem "aws-sdk-secretsmanager"
 gem "rubyzip"
-gem "rerun"
-gem "rspec"
-gem "rack-test"
 gem "jwt"
 gem "nokogiri"
-gem "standard"
+
+# TODO: Move this back into group :development when we figure out how to set the RACK_ENV environment variable on demo
+gem "dotenv"
 
 group :development do
-  gem "dotenv"
+  gem "standard"
+  gem "rerun"
 end
 
 group :development, :test do
   gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
   gem "pry-byebug"
+  gem "rack-test"
+  gem "rspec"
 end

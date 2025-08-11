@@ -12,7 +12,14 @@ RUN wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gp
   && apt-get update && apt install -y temurin-21-jdk
 ENV VITA_MIN_JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64
 
+RUN bundle config set without 'development test'
 RUN bundle install
+
+
+RUN \
+    --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID,env=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID \
+    --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY,env=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY \
+    ruby scripts/download_gyr_efiler.rb
 
 # Tell Docker to listen on port 4567.
 EXPOSE 4567
