@@ -16,7 +16,7 @@ Then, change the "Current value" of the `api_client_name` variable to the base n
 
 Additionally, to send `/submit` requests from Postman, you must provide a submission_bundle with the request. You can download one from the same "EFiler API testing files" note in Lastpass. In the `Body` tab of the `Submit` request, remove any contents from the `submission_bundle`'s Value field and replace it with the file you downloaded by clicking the field then selecting "+ New file from local machine".
 
-To develop the codebase without restarting the server, install rerun with: `gem install rerun` and to run the application run `rerun ruby app.rb`
+To develop the codebase without restarting the server, install rerun with: `gem install rerun` and to run the application run `RACK_ENV=development rerun bundle exec ruby app.rb`
 
 ## Running the Linter
 

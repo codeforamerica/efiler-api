@@ -4,8 +4,8 @@ require "sinatra/base"
 
 module Sinatra
   module EfilerApiClientAuth
-    def authenticate_jwt
-      before do
+    def authenticate_jwt(path_pattern)
+      before(path_pattern) do
         verify_client_name_and_signature
       end
     end

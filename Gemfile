@@ -4,6 +4,7 @@ ruby_version = File.read(File.join(File.dirname(__FILE__), ".ruby-version")).str
 ruby ruby_version
 
 gem "sinatra", github: "sinatra/sinatra"
+gem "sinatra-contrib"
 gem "rackup", "~> 2.2"
 gem "puma", "~> 6.6"
 gem "aws-sdk-s3"
