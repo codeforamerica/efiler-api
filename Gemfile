@@ -12,15 +12,13 @@ gem "rubyzip"
 gem "jwt"
 gem "nokogiri"
 
-# TODO: Move this back into group :development when we figure out how to set the RACK_ENV environment variable on demo
-gem "dotenv"
-
 group :development do
   gem "standard"
   gem "rerun"
 end
 
 group :development, :test do
+  gem "dotenv"
   gem "byebug", platforms: [:mri, :mingw, :x64_mingw]
   gem "pry-byebug"
   gem "rack-test"
