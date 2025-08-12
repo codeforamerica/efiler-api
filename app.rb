@@ -25,7 +25,6 @@ get "/health" do
 end
 
 namespace "/api/v0" do
-
   post "/submit" do
     unless params.has_key?("submission_bundle")
       status 400
