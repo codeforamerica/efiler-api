@@ -72,150 +72,94 @@ RSpec.describe SubmissionsStatus do
   end
 
   describe ".xml_node_with_most_recent_submission_status" do
-    it "gets the most recent xml node indicating a transmitted state in a correctly ordered list of statuses" do
-      xml_nodes = [
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Received by State</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        ),
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Sent to State</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        ),
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Ready for Pick-Up</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        ),
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Received</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        )
-      ]
-      xml_node = described_class.xml_node_with_most_recent_submission_status(xml_nodes)
-      expect(xml_node.css("SubmissionStatusTxt").text).to eq "Received by State"
-    end
-
-    it "gets the most recent xml node indicating a ready-for-ack state in a correctly ordered list of statuses" do
-      xml_nodes = [
-        Nokogiri::XML(
-          <<~XML
+    let(:acknowledgement_received_from_state_node) {
+      Nokogiri::XML(
+        <<~XML
             <StatusRecordGrp>
               <SubmissionId>4414662024003wte794o</SubmissionId>
               <SubmissionStatusTxt>Acknowledgement Received from State</SubmissionStatusTxt>
               <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
             </StatusRecordGrp>
           XML
-        ),
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Received by State</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        ),
-        Nokogiri::XML(
-          <<~XML
+      )
+    }
+    let(:received_by_state_node) {
+      Nokogiri::XML(
+        <<~XML
+          <StatusRecordGrp>
+            <SubmissionId>4414662024003wte794o</SubmissionId>
+            <SubmissionStatusTxt>Received by State</SubmissionStatusTxt>
+            <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
+          </StatusRecordGrp>
+        XML
+      )
+    }
+    let(:sent_to_state_node) {
+      Nokogiri::XML(
+        <<~XML
             <StatusRecordGrp>
               <SubmissionId>4414662024003wte794o</SubmissionId>
               <SubmissionStatusTxt>Sent to State</SubmissionStatusTxt>
               <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
             </StatusRecordGrp>
           XML
-        ),
-        Nokogiri::XML(
-          <<~XML
+      )
+    }
+    let(:read_for_pickup_node) {
+      Nokogiri::XML(
+        <<~XML
             <StatusRecordGrp>
               <SubmissionId>4414662024003wte794o</SubmissionId>
               <SubmissionStatusTxt>Ready for Pick-Up</SubmissionStatusTxt>
               <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
             </StatusRecordGrp>
           XML
-        ),
-        Nokogiri::XML(
-          <<~XML
+      )
+    }
+    let(:received_node) {
+      Nokogiri::XML(
+        <<~XML
             <StatusRecordGrp>
               <SubmissionId>4414662024003wte794o</SubmissionId>
               <SubmissionStatusTxt>Received</SubmissionStatusTxt>
               <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
             </StatusRecordGrp>
           XML
-        )
+      )
+    }
+
+    it "gets the most recent xml node indicating a transmitted state in a correctly ordered list of statuses" do
+      correctly_ordered_xml_nodes = [
+        received_by_state_node,
+        sent_to_state_node,
+        read_for_pickup_node,
+        received_node
       ]
-      xml_node = described_class.xml_node_with_most_recent_submission_status(xml_nodes)
+      xml_node = described_class.xml_node_with_most_recent_submission_status(correctly_ordered_xml_nodes)
+      expect(xml_node.css("SubmissionStatusTxt").text).to eq "Received by State"
+    end
+
+    it "gets the most recent xml node indicating a ready-for-ack state in a correctly ordered list of statuses" do
+      correctly_ordered_xml_nodes = [
+        acknowledgement_received_from_state_node,
+        received_by_state_node,
+        sent_to_state_node,
+        read_for_pickup_node,
+        received_node
+      ]
+      xml_node = described_class.xml_node_with_most_recent_submission_status(correctly_ordered_xml_nodes)
       expect(xml_node.css("SubmissionStatusTxt").text).to eq "Acknowledgement Received from State"
     end
 
     it "gets the most recent xml node indicating a ready-for-ack state in an incorrectly ordered list of statuses" do
-      xml_nodes = [
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Received by State</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        ),
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-            <SubmissionId>4414662024003wte794o</SubmissionId>
-            <SubmissionStatusTxt>Acknowledgement Received from State</SubmissionStatusTxt>
-            <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        ),
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-            <SubmissionId>4414662024003wte794o</SubmissionId>
-            <SubmissionStatusTxt>Sent to State</SubmissionStatusTxt>
-            <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        ),
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-            <SubmissionId>4414662024003wte794o</SubmissionId>
-            <SubmissionStatusTxt>Ready for Pick-Up</SubmissionStatusTxt>
-            <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        ),
-        Nokogiri::XML(
-          <<~XML
-            <StatusRecordGrp>
-            <SubmissionId>4414662024003wte794o</SubmissionId>
-            <SubmissionStatusTxt>Received</SubmissionStatusTxt>
-            <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
-        )
+      incorrectly_ordered_xml_nodes = [
+        received_by_state_node,
+        acknowledgement_received_from_state_node,
+        sent_to_state_node,
+        read_for_pickup_node,
+        received_node
       ]
-      xml_node = described_class.xml_node_with_most_recent_submission_status(xml_nodes)
+      xml_node = described_class.xml_node_with_most_recent_submission_status(incorrectly_ordered_xml_nodes)
       expect(xml_node.css("SubmissionStatusTxt").text).to eq "Acknowledgement Received from State"
     end
   end
