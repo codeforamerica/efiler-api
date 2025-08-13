@@ -1,7 +1,7 @@
 require "rails_helper"
 
 describe MefService do
-  let(:mef_credentials) { { mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz" } }
+  let(:mef_credentials) { {mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz"} }
 
   before do
     allow(described_class).to receive(:create_config_dir)

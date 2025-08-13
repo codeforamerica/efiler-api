@@ -1,6 +1,6 @@
 class Mef::SubmissionsStatus
-  TRANSMITTED_STATUSES = [ "Received", "Ready for Pickup", "Ready for Pick-Up", "Sent to State", "Received by State", "Rejected Acknowledgment Created" ].to_set.freeze
-  READY_FOR_ACK_STATUSES = [ "Denied by IRS", "Acknowledgement Received from State", "Acknowledgement Retrieved", "Notified" ].to_set.freeze
+  TRANSMITTED_STATUSES = ["Received", "Ready for Pickup", "Ready for Pick-Up", "Sent to State", "Received by State", "Rejected Acknowledgment Created"].to_set.freeze
+  READY_FOR_ACK_STATUSES = ["Denied by IRS", "Acknowledgement Received from State", "Acknowledgement Retrieved", "Notified"].to_set.freeze
 
   def self.handle_submission_status_response(response)
     doc = Nokogiri::XML(response)
@@ -21,14 +21,14 @@ class Mef::SubmissionsStatus
       if groups_by_irs_submission_id[irs_submission_id]
         groups_by_irs_submission_id[irs_submission_id].append(xml)
       else
-        groups_by_irs_submission_id[irs_submission_id] = [ xml ]
+        groups_by_irs_submission_id[irs_submission_id] = [xml]
       end
     end
   end
 
   def self.xml_node_with_most_recent_submission_status(submission_status_xml_nodes)
     # We might see out-of-order statuses in the list, so search the list for more-progresses statuses first
-    preferred_status_order = [ READY_FOR_ACK_STATUSES, TRANSMITTED_STATUSES ]
+    preferred_status_order = [READY_FOR_ACK_STATUSES, TRANSMITTED_STATUSES]
     preferred_status_order.each do |statuses_to_look_for|
       most_recent_status_node = submission_status_xml_nodes.find do |xml_node|
         statuses_to_look_for.include? status_from_xml_node(xml_node)

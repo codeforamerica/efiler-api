@@ -30,7 +30,7 @@ class MefService
       # /Library/Java/JavaVirtualMachines
       java = ENV["VITA_MIN_JAVA_HOME"] ? File.join(ENV["VITA_MIN_JAVA_HOME"], "bin", "java") : "java"
 
-      argv = [ java, "-cp", classes_zip_path, "org.codeforamerica.gyr.efiler.App", config_dir, mef_credentials[:mef_env], *args ]
+      argv = [java, "-cp", classes_zip_path, "org.codeforamerica.gyr.efiler.App", config_dir, mef_credentials[:mef_env], *args]
       pid = Process.spawn(*argv,
         unsetenv_others: true,
         chdir: working_directory,
@@ -55,7 +55,7 @@ class MefService
   end
 
   private_class_method def self.create_config_dir(working_directory, mef_credentials)
-    mef_credentials => { app_sys_id:, etin:, cert_base64: }
+    mef_credentials => {app_sys_id:, etin:, cert_base64:}
 
     config_dir = File.join(working_directory, "gyr_efiler_config")
     FileUtils.mkdir(config_dir)

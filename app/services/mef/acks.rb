@@ -6,16 +6,16 @@ class Mef::Acks
       irs_submission_id = ack.css("SubmissionId").text.strip
       status = ack.css("AcceptanceStatusTxt").text.strip.downcase
 
-      status_code = if [ "rejected", "r", "denied by irs" ].include?(status)
+      status_code = if ["rejected", "r", "denied by irs"].include?(status)
         :rejected
-      elsif [ "accepted", "a" ].include?(status)
+      elsif ["accepted", "a"].include?(status)
         :accepted
-      elsif [ "exception" ].include?(status)
+      elsif ["exception"].include?(status)
         :accepted_but_imperfect
       else
         :failed
       end
-      [ irs_submission_id, status_code ]
+      [irs_submission_id, status_code]
     end
   end
 end
