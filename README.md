@@ -2,7 +2,7 @@
 
 Configure profile for `efiler-api` (or whatever you want to call it) following these [instructions here](https://www.notion.so/cfa/AWS-Identity-Center-e8a28122b2f44595a2ef56b46788ce2c#ef1c6c77703b4215bbe1953de4692054) and the following command `aws configure sso --profile efiler-api` and following the rest of the instructions. Choose the "E-Filer API - Non-Prod" account.
 
-Create .env file in the root with the following `AWS_PROFILE=efiler-api` (or whatever you named the profile), as well as setting GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID and GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY to the vita-min development AWS access key (found in rails credentials).
+Create .env file in the root with the following `AWS_PROFILE=efiler-api` (or whatever you named the profile), as well as setting GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID and GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY to the vita-min development AWS access key (found in rails development credentials).
 
 To install the Java GYR e-filer code, run the following command: `bundle exec ruby scripts/download_gyr_efiler.rb`
 
