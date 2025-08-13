@@ -1,7 +1,6 @@
-require "spec_helper"
-require "./submissions_status"
+require "rails_helper"
 
-RSpec.describe SubmissionsStatus do
+describe Mef::SubmissionsStatus do
   let(:multiple_submissions_statuses_xml) do
     <<~XML
       <?xml version='1.0' encoding='UTF-8'?>
