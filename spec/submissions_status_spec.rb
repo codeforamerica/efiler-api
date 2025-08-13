@@ -75,12 +75,12 @@ RSpec.describe SubmissionsStatus do
     let(:acknowledgement_received_from_state_node) {
       Nokogiri::XML(
         <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Acknowledgement Received from State</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
+          <StatusRecordGrp>
+            <SubmissionId>4414662024003wte794o</SubmissionId>
+            <SubmissionStatusTxt>Acknowledgement Received from State</SubmissionStatusTxt>
+            <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
+          </StatusRecordGrp>
+        XML
       )
     }
     let(:received_by_state_node) {
@@ -97,34 +97,34 @@ RSpec.describe SubmissionsStatus do
     let(:sent_to_state_node) {
       Nokogiri::XML(
         <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Sent to State</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
+          <StatusRecordGrp>
+            <SubmissionId>4414662024003wte794o</SubmissionId>
+            <SubmissionStatusTxt>Sent to State</SubmissionStatusTxt>
+            <SubmsnStatusAcknowledgementDt>2024-01-04</SubmsnStatusAcknowledgementDt>
+          </StatusRecordGrp>
+        XML
       )
     }
     let(:read_for_pickup_node) {
       Nokogiri::XML(
         <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Ready for Pick-Up</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
+          <StatusRecordGrp>
+            <SubmissionId>4414662024003wte794o</SubmissionId>
+            <SubmissionStatusTxt>Ready for Pick-Up</SubmissionStatusTxt>
+            <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
+          </StatusRecordGrp>
+        XML
       )
     }
     let(:received_node) {
       Nokogiri::XML(
         <<~XML
-            <StatusRecordGrp>
-              <SubmissionId>4414662024003wte794o</SubmissionId>
-              <SubmissionStatusTxt>Received</SubmissionStatusTxt>
-              <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
-            </StatusRecordGrp>
-          XML
+          <StatusRecordGrp>
+            <SubmissionId>4414662024003wte794o</SubmissionId>
+            <SubmissionStatusTxt>Received</SubmissionStatusTxt>
+            <SubmsnStatusAcknowledgementDt>2024-01-03</SubmsnStatusAcknowledgementDt>
+          </StatusRecordGrp>
+        XML
       )
     }
 
