@@ -1,7 +1,5 @@
-require "zip"
-
 # TODO: implement .with_lock or equivalent to prevent too many connections with mef (?)
-class EfilerService
+class MefService
   # TODO: update to most recent commit
   CURRENT_VERSION = "d8645b36cf2a9faa0593edb703411d8f4bea10df"
   RETRYABLE_LOG_CONTENTS = [
@@ -63,7 +61,7 @@ class EfilerService
     FileUtils.mkdir(config_dir)
 
     config_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-config-#{CURRENT_VERSION}.zip"))[0]
-    raise StandardError.new("Please run `ruby scripts/download_gyr_efiler.rb` then try again") if config_zip_path.nil?
+    raise StandardError.new("Please run `bundle exec ruby script/download_gyr_efiler.rb` then try again") if config_zip_path.nil?
 
     system!("unzip -o #{config_zip_path} -d #{working_directory}")
 

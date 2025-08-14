@@ -1,6 +1,4 @@
-require "nokogiri"
-
-class Acks
+class Mef::Acks
   def self.handle_ack_response(response)
     doc = Nokogiri::XML(response)
 
