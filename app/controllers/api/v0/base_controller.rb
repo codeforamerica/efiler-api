@@ -2,15 +2,19 @@ class Api::V0::BaseController < ApplicationController
   before_action :verify_client_name_and_signature
   rescue_from MefService::RetryableError, with: :retryable_mef_error
   rescue_from ActionController::ParameterMissing, with: :show_errors
-  rescue_from Aws::SecretsManager::Errors::ResourceNotFoundException, with: :show_errors
-  rescue_from JWT::VerificationError, with: :show_errors
+  rescue_from Aws::SecretsManager::Errors::ResourceNotFoundException, with: :unauthorized
+  rescue_from JWT::VerificationError, with: :unauthorized
 
   def retryable_mef_error
-    render json: "Error contacting MeF, please try again"
+    render json: "Error contacting MeF, please try again", status: :bad_gateway
   end
 
   def show_errors(exception)
-    render json: exception.message
+    render json: exception.message, status: :bad_request
+  end
+
+  def unauthorized
+    head :unauthorized
   end
 
   def verify_client_name_and_signature
