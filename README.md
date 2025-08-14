@@ -18,4 +18,4 @@ Additionally, to send `/submit` requests from Postman, you must provide a submis
 
 ## Running the Linter
 
-To run the linter locally, run the following command: `rubocop -a`. If you forget to do this, the linter will run when a branch pushed up. To ignore the linter, here is a [guide](https://github.com/standardrb/standard?tab=readme-ov-file#ignoring-errors).
+To run the linter locally, run the following command: `bundle exec standardrb --fix`. If you forget to do this, the linter will run when a branch pushed up. To ignore the linter, here is a [guide](https://github.com/standardrb/standard?tab=readme-ov-file#ignoring-errors).
