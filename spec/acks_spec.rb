@@ -15,7 +15,7 @@ RSpec.describe Acks do
               ["9999992021197yrv4ref", :rejected],
               ["9999992021197yrv4rgh", :rejected],
               ["9999992021197yrv4rij", :accepted_but_imperfect],
-              ["9999992021197yrv4rkl", :failed],
+              ["9999992021197yrv4rkl", :failed]
             ]
           )
   end
