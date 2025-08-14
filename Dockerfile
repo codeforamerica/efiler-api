@@ -55,7 +55,7 @@ ENV VITA_MIN_JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64
 RUN \
     --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID,env=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID \
     --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY,env=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY \
-    --mount=type=secret,id=RAILS_CREDENTIALS_KEY,env=RAILS_MASTER_KEY \
+    --mount=type=secret,id=SECRET_KEY_BASE,env=SECRET_KEY_BASE \
     bundle exec ruby script/download_gyr_efiler.rb
 
 
