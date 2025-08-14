@@ -28,10 +28,13 @@
 !/tmp/storage/
 !/tmp/storage/.keep
 
-# Ignore master key for decrypting credentials and more.
-/config/master.key
-
 /.idea
 /gyr_efiler/*.zip
 .DS_Store
 .byebug_history
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+/config/credentials/production.key
+/config/credentials/development.key
+/config/credentials/*.key
