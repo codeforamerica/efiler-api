@@ -1,0 +1,14 @@
+name: Standard Ruby Linter
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: write
+    steps:
+      - name: Standard Ruby
+        uses: standardrb/standard-ruby-action@v1
