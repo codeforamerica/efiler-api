@@ -63,7 +63,7 @@ describe Mef::SubmissionsStatus do
       submission_ids = %w[4414662024003wte794o abcdefghijklmnopqrst]
       expect(result.keys).to match_array submission_ids
       submission_ids.each do |submission_id|
-        expect(result[submission_id].length).to eq 4
+        expect(result[ submission_id ].length).to eq 4
         expect(result[submission_id].first.css("SubmissionStatusTxt").text).to eq "Received by State"
         expect(result[submission_id].last.css("SubmissionStatusTxt").text).to eq "Received"
       end
