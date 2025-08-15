@@ -12,9 +12,9 @@ module Api::V0
 
       doc = Nokogiri::XML(result)
       if doc.css("SubmissionReceiptList SubmissionReceiptGrp SubmissionId").text.strip == File.basename(submission_filename, ".zip")
-        render json: { status: "transmitted", result: result }, status: :created
+        render json: {status: "transmitted", result: result}, status: :created
       else
-        render json: { status: "failed", result: result }, status: :bad_request
+        render json: {status: "failed", result: result}, status: :bad_request
       end
     end
 
