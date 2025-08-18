@@ -58,6 +58,14 @@ test:
   <<: *default
   database: efiler_api_test
 
+deploy_default: &deploy_default
+  <<: *default
+  database: efiler_api
+  host: <%= ENV["DATABASE_HOST"] if ENV["DATABASE_USER"] %>
+  username: <%= ENV["DATABASE_USER"] if ENV["DATABASE_USER"] %>
+  password: <%= ENV["DATABASE_PASSWORD"] if ENV["DATABASE_PASSWORD"] %>
+  url: <%= ENV["DATABASE_URL"] %>
+
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
 # ever seen by anyone, they now have access to your database.
@@ -79,20 +87,17 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  primary: &primary_production
-    <<: *default
-    database: efiler_api_production
-    username: efiler_api
-    password: <%= ENV["EFILER_API_DATABASE_PASSWORD"] %>
+  primary:
+    <<: *deploy_default
   cache:
-    <<: *primary_production
-    database: efiler_api_production_cache
+    <<: *deploy_default
     migrations_paths: db/cache_migrate
   queue:
-    <<: *primary_production
-    database: efiler_api_production_queue
+    <<: *deploy_default
     migrations_paths: db/queue_migrate
   cable:
-    <<: *primary_production
-    database: efiler_api_production_cable
+    <<: *deploy_default
     migrations_paths: db/cable_migrate
+
+demo:
+  <<: *deploy_default
