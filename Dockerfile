@@ -16,7 +16,7 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client unzip && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment
@@ -57,7 +57,6 @@ RUN \
     --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY,env=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY \
     --mount=type=secret,id=SECRET_KEY_BASE,env=SECRET_KEY_BASE \
     bundle exec ruby script/download_gyr_efiler.rb
-
 
 # Final stage for app image
 FROM base
