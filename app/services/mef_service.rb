@@ -31,7 +31,7 @@ class MefService
         chdir: working_directory,
         in: "/dev/null")
       Process.wait(pid)
-      raise Error.new("Process failed to exit?") unless $?.exited?
+      raise StandardError.new("Process failed to exit?") unless $?.exited?
 
       exit_code = $?.exitstatus
       if exit_code != 0
