@@ -22,11 +22,6 @@ class MefService
       config_dir = create_config_dir(working_directory, mef_credentials)
       classes_zip_path = ensure_gyr_efiler_downloaded
 
-      # On macOS, "java" will show a confusing pop-up if you run it without a JVM installed. Check for that and exit early.
-      unless system("java", "-version", out: "/dev/null", err: "/dev/null")
-        raise Error.new("Seems you are on a mac & lack Java. Refer to the README for instructions.")
-      end
-
       # /Library/Java/JavaVirtualMachines
       java = ENV["VITA_MIN_JAVA_HOME"] ? File.join(ENV["VITA_MIN_JAVA_HOME"], "bin", "java") : "java"
 
