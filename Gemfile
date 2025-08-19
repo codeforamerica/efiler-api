@@ -37,6 +37,7 @@ gem "rubyzip", require: "zip"
 gem "jwt"
 gem "aws-sdk-s3"
 gem "aws-sdk-secretsmanager"
+gem "open3"
 
 group :development, :test do
   gem "dotenv-rails"

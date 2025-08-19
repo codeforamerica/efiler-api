@@ -16,7 +16,7 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client unzip && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Set production environment
@@ -45,26 +45,27 @@ COPY . .
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
-# JDK installation instructions from https://adoptium.net/installation/linux/
-RUN apt-get update -qq && apt-get install -y wget apt-transport-https gpg && \
-    wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg > /dev/null && \
-    echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list && \
-    apt-get update -qq && apt-get install -y temurin-21-jdk
-ENV VITA_MIN_JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64
-
-RUN \
-    --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID,env=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID \
-    --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY,env=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY \
-    --mount=type=secret,id=SECRET_KEY_BASE,env=SECRET_KEY_BASE \
-    bundle exec ruby script/download_gyr_efiler.rb
-
-
 # Final stage for app image
 FROM base
 
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
+
+# Install Java
+# JDK installation instructions from https://adoptium.net/installation/linux/
+RUN apt-get update -qq && apt-get install -y wget apt-transport-https gpg && \
+    wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg > /dev/null && \
+    echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list && \
+    apt-get update -qq && apt-get install -y temurin-21-jdk
+ENV VITA_MIN_JAVA_HOME="/usr/lib/jvm/temurin-21-jdk-amd64"
+
+# Download GYR EFiler java app
+RUN \
+    --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID,env=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID \
+    --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY,env=GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY \
+    --mount=type=secret,id=SECRET_KEY_BASE,env=SECRET_KEY_BASE \
+    bundle exec ruby script/download_gyr_efiler.rb
 
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \
