@@ -50,7 +50,7 @@ RUN apt-get update -qq && apt-get install -y wget apt-transport-https gpg && \
     wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg > /dev/null && \
     echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list && \
     apt-get update -qq && apt-get install -y temurin-21-jdk
-ENV VITA_MIN_JAVA_HOME=/usr/lib/jvm/temurin-21-jdk-amd64
+ENV VITA_MIN_JAVA_HOME="/usr/lib/jvm/temurin-21-jdk-amd64"
 
 RUN \
     --mount=type=secret,id=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID,env=GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID \
