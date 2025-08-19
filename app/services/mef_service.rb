@@ -63,7 +63,12 @@ class MefService
     config_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-config-#{CURRENT_VERSION}.zip"))[0]
     raise StandardError.new("Please run `bundle exec ruby script/download_gyr_efiler.rb` then try again") if config_zip_path.nil?
 
-    system!("unzip -o #{config_zip_path} -d #{working_directory}")
+    unzip_command = "unzip -o #{config_zip_path} -d #{working_directory}"
+    Open3.popen3(unzip_command) do |_, _, stderr, wait_thr|
+      if wait_thr.value.exitstatus != 0
+        abort("Command #{unzip_command} failed with #{stderr.read.chomp}")
+      end
+    end
 
     write_mef_credentials_to_config_dir(app_sys_id, cert_base64, etin, config_dir)
 
