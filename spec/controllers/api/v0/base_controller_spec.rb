@@ -3,67 +3,42 @@ require "rails_helper"
 class FakeController < Api::V0::BaseController; end
 
 describe FakeController, type: :controller do
-  describe "#verify_client_name_and_signature" do
-    # authorization_header = request.headers["HTTP_AUTHORIZATION"]
-    # token = JWT::EncodedToken.new(authorization_header.delete_prefix("Bearer "))
-    #
-    # client_credentials = get_api_client_mef_credentials
-    # client_public_key_base64 = client_credentials[:efiler_api_public_key]
-    # client_public_key = OpenSSL::PKey::RSA.new(Base64.decode64(client_public_key_base64))
-    # token.verify_signature!(algorithm: "RS256", key: client_public_key)
-    it "verifies the request has a valid JWT with cert and client app name" do
-      client_app_name = "FakeClientApp"
-
-      allow_any_instance_of(Aws::SecretsManager::Client)
-        .to receive(:get_secret_value)
-              .with(secret_id: "efiler-api-client-mef-credentials/#{client_app_name}")
-              .and_return({ mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz" })
-
-
-      claim = { "iss" => client_app_name }
-      request.headers["Authorization"] = "Bearer #{token}"
-
+  context "verifying the client" do
+    let(:client_app_name) { "ClientAppName" }
+    let(:jwt) { JWT.encode({ iss: client_app_name, efiler_api_public_key: OpenSSL::PKey::RSA.new(PUBLIC_KEY) }, OpenSSL::PKey::RSA.new(PRIVATE_KEY), 'RS256') }
+    before do
+      request.headers["Authorization"] = "Bearer #{jwt}"
     end
-  end
 
-  describe "#get_api_client_mef_credentials" do
-    it "returns the credentials from aws with symbols as keys" do
-      client_app_name = "FakeClientApp"
-      allow_any_instance_of(described_class).to receive(:api_client_name).and_return client_app_name
+    describe "#get_api_client_mef_credentials" do
+      it "gets the credentials corresponding to the client app name in the jwt and converts keys to symbols" do
+        secrets_hash = { "mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz" }
+        allow_any_instance_of(Aws::SecretsManager::Client)
+          .to receive(:get_secret_value)
+                .with(secret_id: "efiler-api-client-mef-credentials/#{client_app_name}")
+                .and_return(Aws::SecretsManager::Types::GetSecretValueResponse.new(secret_string: secrets_hash.to_json))
 
-      secrets_manager_double = double
-      allow(Aws::SecretsManager::Client).to receive(:new).and_return secrets_manager_double
-
-      secrets_hash = { "mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz" }
-      get_secrets_value_response_double = Aws::SecretsManager::Types::GetSecretValueResponse.new(secret_string: secrets_hash.to_json)
-
-      allow(secrets_manager_double)
-        .to receive(:get_secret_value)
-              .with(secret_id: "efiler-api-client-mef-credentials/#{client_app_name}")
-              .and_return(get_secrets_value_response_double)
-
-      expect(described_class.new.get_api_client_mef_credentials)
-        .to eq({ mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz" })
-    end
-  end
-
-  xdescribe "#api_client_name" do
-    controller do
-      def index
-        return api_client_name
+        expect(subject.get_api_client_mef_credentials)
+          .to eq({ mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz" })
       end
     end
 
-    it "gets the api client name from the iss" do
-      allow_any_instance_of(described_class).to receive(:verify_client_name_and_signature)
-      token_double = double
-      allow(token_double).to receive(:unverified_payload).and_return({"iss" => "Client App"})
-      allow(JWT::EncodedToken).to receive(:new).and_return token_double
-      request.headers["Authorization"] = "Bearer #{token_double}"
+    describe "#verify_client_name_and_signature" do
+      it "verifies the request has a valid JWT with cert and client app name" do
+        allow(subject).to receive(:get_api_client_mef_credentials).and_return({ efiler_api_public_key: Base64.encode64(PUBLIC_KEY), app_sys_id: "foo", etin: "bar" })
 
-      get :index
+        expect {
+          subject.verify_client_name_and_signature
+        }.not_to raise_error
+      end
 
-      expect(response.body).to eq "Client App"
+      it "raises JWT::VerificationError when cert is not valid" do
+        allow(subject).to receive(:get_api_client_mef_credentials).and_return({ efiler_api_public_key: Base64.encode64(WRONG_PUBLIC_KEY), app_sys_id: "foo", etin: "bar" })
+
+        expect {
+          subject.verify_client_name_and_signature
+        }.to raise_error(JWT::VerificationError)
+      end
     end
   end
 
@@ -108,7 +83,7 @@ describe FakeController, type: :controller do
     xcontext "when it encounters an aws resource not found error" do
       controller do
         def index
-          raise Aws::SecretsManager::Errors::ResourceNotFoundException(nil, nil)
+          raise Aws::SecretsManager::Errors::ResourceNotFoundException
           head :ok
         end
       end
@@ -136,3 +111,56 @@ describe FakeController, type: :controller do
     end
   end
 end
+
+PUBLIC_KEY = <<~PUB
+  -----BEGIN PUBLIC KEY-----
+  MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAi11NTb3EiWRNqz1TdbuM
+  9WhQpPy+boFMuhyM8zMRAoDUlza3hXuUSaWYBmm5nJpnRzLCCQHQSciw1UTx76y/
+  AEcpzqTygoa0v4vogHVMs8Y7IjggZ6CbMqyRaT40/wRkj/NFXi7RSjTU03ChTkG/
+  XKZbIYqDZCJ5Sk0sM4smQBEzvx78agDumyCjXEUgdIVhwKHQiyw4BC2IZoBNmVia
+  M+sJG0oX3ClW25iBnzTqpqUcNdrw8bMnk2kJvTE0NspVyE9cEYb3wgm6yl+WfyIG
+  nI8QAyxSvOfhQxhLgFeRXECyOEhwtQ2X+dO8fWO8tvoW9je4W0Xs0yAGSaock8MY
+  tQIDAQAB
+  -----END PUBLIC KEY-----
+PUB
+PRIVATE_KEY = <<~PRIV
+  -----BEGIN PRIVATE KEY-----
+  MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCLXU1NvcSJZE2r
+  PVN1u4z1aFCk/L5ugUy6HIzzMxECgNSXNreFe5RJpZgGabmcmmdHMsIJAdBJyLDV
+  RPHvrL8ARynOpPKChrS/i+iAdUyzxjsiOCBnoJsyrJFpPjT/BGSP80VeLtFKNNTT
+  cKFOQb9cplshioNkInlKTSwziyZAETO/HvxqAO6bIKNcRSB0hWHAodCLLDgELYhm
+  gE2ZWJoz6wkbShfcKVbbmIGfNOqmpRw12vDxsyeTaQm9MTQ2ylXIT1wRhvfCCbrK
+  X5Z/IgacjxADLFK85+FDGEuAV5FcQLI4SHC1DZf507x9Y7y2+hb2N7hbRezTIAZJ
+  qhyTwxi1AgMBAAECggEAAvRr9ql+2MDhKq/GrLjYwL1A9HaNXQ9tvoZrcJ6VDj4I
+  A9q7ol9f4f3aTsyADHNznB1V4tYAggf4w9TN4lyBwjJADysNHzpW67a+K7cQ9MDP
+  sSaKfVf44mapQJd6jSudLDYmstwAQPgEySTarquTMJYwWXIz3fQjKTGgrckV+wa6
+  VOcIQ9xQuF6chNeIUsrb0/J6+7+Om/44enA2HPi6r+rcqTXeaXvG7pB4XahYcWF5
+  r+bEM7MFjjSPKc0HIyLkSz1OFS0dooXDJssPbKc5bXUm2E0cR8XPNMcmMiZ5qUJJ
+  XRRM7hSICvXen86CAH6cYUlEcz3yOCF80PVxUEpTYwKBgQDAL9GD3zpURcsHy2bc
+  wYJ3+853g9fdtJ9xcbWy0ksfgBXhKkepqnBKBNb8l/Z318IbH641V4z70LTtxtvO
+  u+wmeHfK00qeB5BqXgGEgwvU1n1aVaqMZfCWfZZHNtx9mPTQTjd7IG9cH0Qfz5Jy
+  j76kTYNTB09vQagwMiwXGdaXkwKBgQC5o4B5ZBIgPbDTlUfNitBRQTjgT1wGYXUh
+  bbWXhQgzAaofLUAJKphFbfEohE2hMdaOPIFHibXsKAOKWN2+nxDFcUNhQJgi5FCo
+  S4iudNPyFewRtrojCI5Hn5TQXlxAfWMqh3fa40uUeWQdtLPBK9FB2speatPcWFDh
+  J+8YCp4rlwKBgAg+RNNOMNdKgxHbhJb1ad4xm8J+kjS9OZWJFg0MfhJk0QtuX9KE
+  L/rMyFffQMAVLgsxyawaDD8Eza3hOK5eWxuvURwPAgVTN7uIOrJvWIORi6DjScRp
+  3u7lhhuZ2807UUzZ/gE2++/Mm4Rtx89IIRo1BOv7xUl1XHxsun1nK1AnAoGAAu/4
+  X3Na6hGv05lAGpuAslhy2vHGhf9SyCWhQvWC7LOxCm8/3SVEZYzYzQhS5iMQvw1s
+  CkK+ky8K50yCrbp8nHMvWsGX5q1wLUmMrx4AIIuCQcF/boB7J9z5kNZ9ZTPWttyP
+  4/HGx2GoWOP8GClmVUFuBFJyacEn/ngQS3QXjp8CgYEAohXw6s0/Ma9HKEn41giK
+  edgwtSO3c3P/AJVoQ3LG3L6xOWR2XtUnulHnpCSlcfVSRTzLqAcRrjTaGCqtXVjL
+  I0hqaX6g3S0PkkviJSDEBkqEbtgpfM9YWmldhyWnChnNec7a9Ivlrdu/u7M1bGfv
+  rcI5nHUkyoAFoAI0V/Kg2IA=
+  -----END PRIVATE KEY-----
+PRIV
+WRONG_PUBLIC_KEY = <<~PUB
+  -----BEGIN PUBLIC KEY-----
+  MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArhYW/0hyg3/Qs//aT7nu
+  omjYv9BcU74Pi76Fcw6BqepKwjLZufjKsoPcWjQBCF1bYTTRGcAGbFJlT4ld/pHd
+  4L25znBbZNoRA24O+3G1ZzYk3HWF3sCgwRTu+/57zCUBvH/uQ3A2Agmh+TGHq3Ky
+  oTrcKeQVedPTA6uWFtwrjYl+OXAK7w46UfFNb4HdsCQ67JZ7rdNZW6gDIXY1MU93
+  Z/wBUC4fnJ/7VOvkLjzPctq93LvvO3KlVXFImZz7X2X67/Vr5t+zOIDRch4kmtQs
+  H7m1Un+2j56BmF8eYIH1bJdFszObuG+RE5hCJcUOk+B5fw98j/yvBDwVTt726Rrz
+  JQIDAQAB
+  -----END PUBLIC KEY-----
+PUB
