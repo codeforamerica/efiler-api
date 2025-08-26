@@ -1,8 +1,6 @@
-require "spec_helper"
-require "./efiler_service"
-require "tmpdir"
+require "rails_helper"
 
-RSpec.describe EfilerService do
+describe MefService do
   let(:mef_credentials) { {mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz"} }
 
   before do
@@ -67,7 +65,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(EfilerService::RetryableError)
+          }.to raise_error(MefService::RetryableError)
         end
       end
 
@@ -90,7 +88,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(EfilerService::RetryableError)
+          }.to raise_error(MefService::RetryableError)
         end
       end
 
@@ -115,7 +113,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(EfilerService::RetryableError)
+          }.to raise_error(MefService::RetryableError)
         end
       end
 
@@ -125,7 +123,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(EfilerService::RetryableError)
+          }.to raise_error(MefService::RetryableError)
         end
       end
 
@@ -135,7 +133,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(EfilerService::RetryableError)
+          }.to raise_error(MefService::RetryableError)
         end
       end
 
@@ -145,7 +143,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(EfilerService::RetryableError)
+          }.to raise_error(MefService::RetryableError)
         end
       end
 
@@ -161,7 +159,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(EfilerService::RetryableError)
+          }.to raise_error(MefService::RetryableError)
         end
       end
 
@@ -177,7 +175,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(EfilerService::RetryableError)
+          }.to raise_error(MefService::RetryableError)
         end
       end
 
@@ -193,7 +191,7 @@ RSpec.describe EfilerService do
         it "raises a RetryableError" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(EfilerService::RetryableError)
+          }.to raise_error(MefService::RetryableError)
         end
       end
     end
