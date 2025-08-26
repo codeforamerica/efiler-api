@@ -18,7 +18,7 @@ describe FakeController, type: :controller do
 
     describe "#get_api_client_mef_credentials" do
       it "gets the credentials corresponding to the client app name in the jwt and converts keys to symbols" do
-        secrets_hash = { "mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz" }
+        secrets_hash = {"mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz"}
         allow(mock_secrets_manager_client)
           .to receive(:get_secret_value)
           .with(secret_id: "efiler-api-client-mef-credentials/#{client_app_name}")
