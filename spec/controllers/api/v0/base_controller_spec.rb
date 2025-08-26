@@ -3,6 +3,12 @@ require "rails_helper"
 class FakeController < Api::V0::BaseController; end
 
 describe FakeController, type: :controller do
+  let(:mock_secrets_manager_client) { instance_double(Aws::SecretsManager::Client) }
+  before do
+    allow(Aws::SecretsManager::Client).to receive(:new).and_return(mock_secrets_manager_client)
+    allow(mock_secrets_manager_client).to receive(:get_secret_value)
+  end
+
   context "verifying the client" do
     let(:client_app_name) { "ClientAppName" }
     let(:jwt) { JWT.encode({iss: client_app_name, efiler_api_public_key: OpenSSL::PKey::RSA.new(PUBLIC_KEY)}, OpenSSL::PKey::RSA.new(PRIVATE_KEY), "RS256") }
@@ -12,8 +18,13 @@ describe FakeController, type: :controller do
 
     describe "#get_api_client_mef_credentials" do
       it "gets the credentials corresponding to the client app name in the jwt and converts keys to symbols" do
+<<<<<<< Updated upstream
         secrets_hash = {"mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz"}
         allow_any_instance_of(Aws::SecretsManager::Client)
+=======
+        secrets_hash = { "mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz" }
+        allow(mock_secrets_manager_client)
+>>>>>>> Stashed changes
           .to receive(:get_secret_value)
           .with(secret_id: "efiler-api-client-mef-credentials/#{client_app_name}")
           .and_return(Aws::SecretsManager::Types::GetSecretValueResponse.new(secret_string: secrets_hash.to_json))
@@ -83,7 +94,7 @@ describe FakeController, type: :controller do
     xcontext "when it encounters an aws resource not found error" do
       controller do
         def index
-          raise Aws::SecretsManager::Errors::ResourceNotFoundException
+          raise Aws::SecretsManager::Errors::ResourceNotFoundException(Seahorse::Client::RequestContext.new, "message")
           head :ok
         end
       end
