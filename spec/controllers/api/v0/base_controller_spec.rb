@@ -86,21 +86,6 @@ describe FakeController, type: :controller do
       end
     end
 
-    xcontext "when it encounters an aws resource not found error" do
-      controller do
-        def index
-          raise Aws::SecretsManager::Errors::ResourceNotFoundException(Seahorse::Client::RequestContext.new, "message")
-          head :ok
-        end
-      end
-
-      it "returns unauthorized" do
-        get :index
-
-        expect(response).to be_unauthorized
-      end
-    end
-
     context "when it encounters a jwt verification error" do
       controller do
         def index
