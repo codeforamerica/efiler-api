@@ -57,7 +57,6 @@ describe FakeController, type: :controller do
       controller do
         def index
           raise MefService::RetryableError
-          head :ok
         end
       end
 
@@ -90,7 +89,6 @@ describe FakeController, type: :controller do
       controller do
         def index
           raise JWT::VerificationError
-          head :ok
         end
       end
 
