@@ -71,7 +71,6 @@ describe FakeController, type: :controller do
     context "when it encounters a missing parameters error" do
       controller do
         def index
-          params = ActionController::Parameters.new(a: {})
           params.fetch(:boop)
           head :ok
         end
