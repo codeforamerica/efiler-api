@@ -3,12 +3,6 @@ require "rails_helper"
 class FakeController < Api::V0::BaseController; end
 
 describe FakeController, type: :controller do
-  let(:mock_secrets_manager_client) { instance_double(Aws::SecretsManager::Client) }
-  before do
-    allow(Aws::SecretsManager::Client).to receive(:new).and_return(mock_secrets_manager_client)
-    allow(mock_secrets_manager_client).to receive(:get_secret_value)
-  end
-
   context "verifying the client" do
     let(:client_app_name) { "ClientAppName" }
     let(:jwt) { JWT.encode({iss: client_app_name, efiler_api_public_key: OpenSSL::PKey::RSA.new(PUBLIC_KEY)}, OpenSSL::PKey::RSA.new(PRIVATE_KEY), "RS256") }
@@ -16,22 +10,9 @@ describe FakeController, type: :controller do
       request.headers["Authorization"] = "Bearer #{jwt}"
     end
 
-    describe "#get_api_client_mef_credentials" do
-      it "gets the credentials corresponding to the client app name in the jwt and converts keys to symbols" do
-        secrets_hash = {"mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz"}
-        allow(mock_secrets_manager_client)
-          .to receive(:get_secret_value)
-          .with(secret_id: "efiler-api-client-mef-credentials/#{client_app_name}")
-          .and_return(Aws::SecretsManager::Types::GetSecretValueResponse.new(secret_string: secrets_hash.to_json))
-
-        expect(subject.get_api_client_mef_credentials)
-          .to eq({mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz"})
-      end
-    end
-
     describe "#verify_client_name_and_signature" do
       it "verifies the request has a valid JWT with cert and client app name" do
-        allow(subject).to receive(:get_api_client_mef_credentials).and_return({efiler_api_public_key: Base64.encode64(PUBLIC_KEY), app_sys_id: "foo", etin: "bar"})
+        allow(MefService).to receive(:get_mef_credentials).with(client_app_name).and_return({efiler_api_public_key: Base64.encode64(PUBLIC_KEY), app_sys_id: "foo", etin: "bar"})
 
         expect {
           subject.verify_client_name_and_signature
@@ -39,7 +20,7 @@ describe FakeController, type: :controller do
       end
 
       it "raises JWT::VerificationError when cert is not valid" do
-        allow(subject).to receive(:get_api_client_mef_credentials).and_return({efiler_api_public_key: Base64.encode64(WRONG_PUBLIC_KEY), app_sys_id: "foo", etin: "bar"})
+        allow(MefService).to receive(:get_mef_credentials).with(client_app_name).and_return({efiler_api_public_key: Base64.encode64(WRONG_PUBLIC_KEY), app_sys_id: "foo", etin: "bar"})
 
         expect {
           subject.verify_client_name_and_signature

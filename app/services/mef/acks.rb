@@ -1,5 +1,5 @@
 class Mef::Acks
-  def self.handle_ack_response(response)
+  def self.parse_acks_response(response)
     doc = Nokogiri::XML(response)
 
     doc.css("AcknowledgementList Acknowledgement").to_h do |ack|

@@ -38,17 +38,15 @@ gem "jwt"
 gem "aws-sdk-s3"
 gem "aws-sdk-secretsmanager"
 gem "open3"
+gem "faraday"
 
 group :development, :test do
   gem "dotenv-rails"
-
   gem "rspec-rails", "~> 8.0"
-
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
-
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
-
   gem "standard", require: false
+  gem "webmock"
 end

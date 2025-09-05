@@ -16,6 +16,12 @@ class MefService
     /HTTP transport error: javax.net.ssl.SSLException/
   ]
 
+  def self.get_mef_credentials(api_client_name)
+    aws_client = Aws::SecretsManager::Client.new
+    response = aws_client.get_secret_value(secret_id: "efiler-api-client-mef-credentials/#{api_client_name}")
+    JSON.parse(response.secret_string).transform_keys { |k| k.to_sym }
+  end
+
   def self.run_efiler_command(mef_credentials, *args)
     Dir.mktmpdir do |working_directory|
       FileUtils.mkdir_p(File.join(working_directory, "output", "log"))

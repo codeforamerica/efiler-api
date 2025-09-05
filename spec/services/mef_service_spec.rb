@@ -8,6 +8,26 @@ describe MefService do
     allow(described_class).to receive(:ensure_gyr_efiler_downloaded).and_return("/tmp/hypothetical_classes.zip")
   end
 
+  describe "#get_api_client_mef_credentials" do
+    let(:mock_secrets_manager_client) { instance_double(Aws::SecretsManager::Client) }
+    let(:client_app_name) { "ClientAppName" }
+    before do
+      allow(Aws::SecretsManager::Client).to receive(:new).and_return(mock_secrets_manager_client)
+      allow(mock_secrets_manager_client).to receive(:get_secret_value)
+    end
+
+    it "gets the credentials corresponding to the client app name in the jwt and converts keys to symbols" do
+      secrets_hash = {"mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz"}
+      allow(mock_secrets_manager_client)
+        .to receive(:get_secret_value)
+        .with(secret_id: "efiler-api-client-mef-credentials/#{client_app_name}")
+        .and_return(Aws::SecretsManager::Types::GetSecretValueResponse.new(secret_string: secrets_hash.to_json))
+
+      expect(described_class.get_mef_credentials(client_app_name))
+        .to eq({mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz"})
+    end
+  end
+
   describe ".run_efiler_command" do
     context "success" do
       let(:zip_data) do
