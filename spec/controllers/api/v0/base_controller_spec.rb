@@ -21,7 +21,7 @@ describe FakeController, type: :controller do
         secrets_hash = {"mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz"}
         allow(mock_secrets_manager_client)
           .to receive(:get_secret_value)
-          .with(secret_id: "efiler-api-client-mef-credentials/#{client_app_name}")
+          .with(secret_id: "efiler-api-client-credentials/#{client_app_name}")
           .and_return(Aws::SecretsManager::Types::GetSecretValueResponse.new(secret_string: secrets_hash.to_json))
 
         expect(subject.get_api_client_mef_credentials)
