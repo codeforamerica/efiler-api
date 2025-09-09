@@ -18,7 +18,8 @@ class MefService
 
   def self.get_mef_credentials(api_client_name)
     aws_client = Aws::SecretsManager::Client.new
-    response = aws_client.get_secret_value(secret_id: "efiler-api-client-mef-credentials/#{api_client_name}")
+    environment = Rails.env.production? ? "production" : "demo"
+    response = aws_client.get_secret_value(secret_id: "efiler-api/#{environment}/efiler-api-client-credentials/#{api_client_name}")
     JSON.parse(response.secret_string).transform_keys { |k| k.to_sym }
   end
 

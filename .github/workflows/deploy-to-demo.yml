@@ -76,7 +76,7 @@ jobs:
         uses: 8398a7/action-slack@v3
         if: failure()
         with:
-          text: "<!subteam^S06P99RGJDS> <@U07QATMB6SW> <@U07Q39HFLBG> E-filer demo deploy ${{ job.status }} :angry_smiling_crying_sweating_face:"
+          text: "<!subteam^S06P99RGJDS> E-filer demo deploy ${{ job.status }} :angry_smiling_crying_sweating_face:"
           status: ${{ job.status }}
           fields: message,commit,author,workflow,took
         env:

@@ -20,7 +20,7 @@ describe MefService do
       secrets_hash = {"mef_env" => "test", "app_sys_id" => "foo", "etin" => "bar", "cert_base64" => "baz"}
       allow(mock_secrets_manager_client)
         .to receive(:get_secret_value)
-        .with(secret_id: "efiler-api-client-mef-credentials/#{client_app_name}")
+        .with(secret_id: "efiler-api/demo/efiler-api-client-credentials/#{client_app_name}")
         .and_return(Aws::SecretsManager::Types::GetSecretValueResponse.new(secret_string: secrets_hash.to_json))
 
       expect(described_class.get_mef_credentials(client_app_name))
