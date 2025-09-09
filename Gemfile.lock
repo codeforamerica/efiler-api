@@ -281,7 +281,7 @@ GEM
       rubocop (>= 1.75.0, < 2.0)
       rubocop-ast (>= 1.38.0, < 2.0)
     ruby-progressbar (1.13.0)
-    rubyzip (3.0.1)
+    rubyzip (3.1.0)
     securerandom (0.4.1)
     solid_cable (3.0.11)
       actioncable (>= 7.2)
