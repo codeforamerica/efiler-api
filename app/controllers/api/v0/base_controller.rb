@@ -18,6 +18,8 @@ class Api::V0::BaseController < ApplicationController
   end
 
   def verify_client_name_and_signature
+    puts "Rails.env is #{Rails.env}"
+
     authorization_header = request.headers["HTTP_AUTHORIZATION"]
     token = JWT::EncodedToken.new(authorization_header.delete_prefix("Bearer "))
 

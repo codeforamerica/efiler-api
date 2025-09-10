@@ -86,7 +86,7 @@ deploy_default: &deploy_default
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
-production:
+production: &production_like
   primary:
     <<: *deploy_default
   cache:
@@ -100,4 +100,4 @@ production:
     migrations_paths: db/cable_migrate
 
 demo:
-  <<: *deploy_default
+  <<: *production_like
