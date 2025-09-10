@@ -63,7 +63,7 @@ jobs:
           repo_name="tax-benefits-backend"
           event_type="deploy"
           environment="efiler-api-demo"
-          config="demo.efilerapi.org"
+          config="demo.efiler-api.fileyourstatetaxes.org"
           curl -L \
             -X POST \
             -H "Accept: application/vnd.github+json" \
