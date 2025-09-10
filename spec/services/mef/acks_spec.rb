@@ -4,7 +4,7 @@ describe Mef::Acks do
   it "returns the correct status codes for different values of AcceptanceStatusTxt" do
     response = file_fixture("irs_acknowledgement.xml").read
 
-    expect(described_class.handle_ack_response(response))
+    expect(described_class.parse_acks_response(response))
       .to match_array(
             [
               ["9999992021197yrv4rvl", :accepted],
