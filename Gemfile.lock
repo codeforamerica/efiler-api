@@ -283,15 +283,6 @@ GEM
     ruby-progressbar (1.13.0)
     rubyzip (3.1.0)
     securerandom (0.4.1)
-    solid_cable (3.0.12)
-      actioncable (>= 7.2)
-      activejob (>= 7.2)
-      activerecord (>= 7.2)
-      railties (>= 7.2)
-    solid_cache (1.0.7)
-      activejob (>= 7.2)
-      activerecord (>= 7.2)
-      railties (>= 7.2)
     solid_queue (1.2.1)
       activejob (>= 7.1)
       activerecord (>= 7.1)
@@ -359,8 +350,6 @@ DEPENDENCIES
   rails (~> 8.0.2)
   rspec-rails (~> 8.0)
   rubyzip
-  solid_cable
-  solid_cache
   solid_queue
   standard
   thruster

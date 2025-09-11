@@ -89,15 +89,9 @@ deploy_default: &deploy_default
 production: &production_like
   primary:
     <<: *deploy_default
-  cache:
-    <<: *deploy_default
-    migrations_paths: db/cache_migrate
   queue:
     <<: *deploy_default
     migrations_paths: db/queue_migrate
-  cable:
-    <<: *deploy_default
-    migrations_paths: db/cable_migrate
 
 demo:
   <<: *production_like
