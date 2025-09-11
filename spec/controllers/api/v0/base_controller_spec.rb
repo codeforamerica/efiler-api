@@ -2,7 +2,7 @@ require "rails_helper"
 
 class FakeController < Api::V0::BaseController; end
 
-xdescribe FakeController, type: :controller do
+describe FakeController, type: :controller do
   let(:mock_secrets_manager_client) { instance_double(Aws::SecretsManager::Client) }
   before do
     allow(Aws::SecretsManager::Client).to receive(:new).and_return(mock_secrets_manager_client)
