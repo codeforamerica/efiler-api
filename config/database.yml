@@ -86,12 +86,8 @@ deploy_default: &deploy_default
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
-production: &production_like
-  primary:
-    <<: *deploy_default
-  queue:
-    <<: *deploy_default
-    migrations_paths: db/queue_migrate
+production:
+  <<: *deploy_default
 
 demo:
-  <<: *production_like
+  <<: *deploy_default
