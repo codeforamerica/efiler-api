@@ -3,24 +3,32 @@ class Api::V0::BaseController < ApplicationController
   before_action :verify_client_name_and_signature
 
   rescue_from MefService::RetryableError, with: :retryable_mef_error
-  rescue_from ActionController::ParameterMissing, with: :show_errors
-  rescue_from Aws::SecretsManager::Errors::ResourceNotFoundException, with: :unauthorized
-  rescue_from JWT::VerificationError, with: :unauthorized
+  rescue_from ActionController::ParameterMissing, with: :showable_error
+  rescue_from Aws::SecretsManager::Errors::ServiceError, with: :aws_error
+  rescue_from JWT::VerificationError, with: :jwt_error
 
   attr_reader :api_request_id
   def generate_api_request_id
     @api_request_id = SecureRandom.uuid
   end
 
-  def retryable_mef_error
+  def retryable_mef_error(exception)
+    Rails.logger.error("Encountered retryable error while contacting MeF: #{exception}")
     render json: "Error contacting MeF, please try again", status: :bad_gateway
   end
 
-  def show_errors(exception)
+  def showable_error(exception)
+    Rails.logger.error("Encountered showable error: #{exception}")
     render json: exception.message, status: :bad_request
   end
 
-  def unauthorized
+  def aws_error(exception)
+    Rails.logger.error("Encountered error while contacting AWS: #{exception}")
+    head :unauthorized
+  end
+
+  def jwt_error(exception)
+    Rails.logger.error("Encountered JWT verification error: #{exception}")
     head :unauthorized
   end
 
