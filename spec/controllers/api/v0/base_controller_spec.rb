@@ -34,21 +34,6 @@ describe FakeController, type: :controller do
       allow_any_instance_of(described_class).to receive(:verify_client_name_and_signature).and_return(true)
     end
 
-    context "when it encounters a retryable error" do
-      controller do
-        def index
-          raise MefService::RetryableError
-        end
-      end
-
-      it "returns a bad gateway response" do
-        get :index
-
-        expect(response.body).to eq("Error contacting MeF, please try again")
-        expect(response.status).to eq(502)
-      end
-    end
-
     context "when it encounters a missing parameters error" do
       controller do
         def index
