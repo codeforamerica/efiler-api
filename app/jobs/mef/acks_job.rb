@@ -1,13 +1,9 @@
 module Mef
-  class AcksJob < ApplicationJob
-    def perform(api_request_id, webhook_url, api_client_name, submission_ids)
-      mef_credentials = MefService.get_mef_credentials(api_client_name)
+  class AcksJob < MefJob
+    def perform_mef_request(submission_ids)
       mef_response = MefService.run_efiler_command(mef_credentials, "acks", *submission_ids)
-      WebhookCallbackJob.perform_later(
-        api_request_id,
-        webhook_url,
-        {result: Mef::Acks.parse_acks_response(mef_response)}
-      )
+      parsed_response = Mef::Acks.parse_acks_response(mef_response)
+      WebhookCallbackJob.perform_later(api_request_id, webhook_url, {result: parsed_response})
     end
   end
 end

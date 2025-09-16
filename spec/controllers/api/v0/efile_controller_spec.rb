@@ -126,4 +126,57 @@ describe Api::V0::EfileController, type: :controller do
       expect(MefService).to have_received(:run_efiler_command).with(mef_credentials, "acks", "123", "456")
     end
   end
+
+  describe "error handling" do
+    context "retryable error on mef request" do
+      let(:webhook_url) { "https://example.com/acks_webhook" }
+      let(:expected_webhook_request_body) do
+        {error: "fake retryable error (MefService::RetryableError)", api_request_id: api_request_id}.to_json
+      end
+
+      before do
+        allow(MefService).to receive(:run_efiler_command).and_raise(MefService::RetryableError, "fake retryable error")
+        # Change retry_on to only retry once to simplify testing
+        Mef::MefJob.retry_on MefService::RetryableError, attempts: 2, wait: 0.seconds
+      end
+
+      it "retries the mef call and responds with a failure after retry attemps are exhausted" do
+        get :acks, params: {id: [123, 456], webhook_url: webhook_url}
+        expect(response.status).to eq(200)
+
+        perform_enqueued_jobs(only: Mef::AcksJob)
+        assert_performed_jobs 1
+
+        clear_performed_jobs
+        assert_raises(MefService::RetryableError) do
+          perform_enqueued_jobs(only: Mef::AcksJob)
+        end
+        assert_performed_jobs 1
+
+        expect(MefService).to have_received(:run_efiler_command).with(mef_credentials, "acks", "123", "456").twice
+      end
+    end
+
+    context "non-retryable error" do
+      let(:webhook_url) { "https://example.com/acks_webhook" }
+      let(:expected_webhook_request_body) do
+        {error: "fake non-retryable error (StandardError)", api_request_id: api_request_id}.to_json
+      end
+
+      before do
+        allow(MefService).to receive(:run_efiler_command).and_raise(StandardError, "fake non-retryable error")
+      end
+
+      it "responds with a failure immediately" do
+        get :acks, params: {id: [123, 456], webhook_url: webhook_url}
+        expect(response.status).to eq(200)
+
+        assert_raises(StandardError) do
+          perform_enqueued_jobs(only: Mef::AcksJob)
+        end
+        assert_performed_jobs 1
+        expect(MefService).to have_received(:run_efiler_command).with(mef_credentials, "acks", "123", "456")
+      end
+    end
+  end
 end
