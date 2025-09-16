@@ -6,6 +6,10 @@ class Api::V0::BaseController < ApplicationController
   rescue_from Aws::SecretsManager::Errors::ServiceError, with: :aws_error
   rescue_from JWT::VerificationError, with: :jwt_error
 
+  # A random API Request ID is returned to the client synchronously and also included in all webhook requests.
+  # This is so that the client can correspond a webhook callback to the originating API request.
+  # This pattern requires that clients persist records of all API calls that so that they can look them up by request ID
+  # upon receiving a webhook callback and take appropriate steps to resolve whatever action initiated the API request.
   attr_reader :api_request_id
   def generate_api_request_id
     @api_request_id = SecureRandom.uuid
