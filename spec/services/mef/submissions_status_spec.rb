@@ -52,7 +52,7 @@ describe Mef::SubmissionsStatus do
 
   describe ".handle_submission_status_response" do
     it "returns the right thing" do
-      expect(described_class.handle_submission_status_response(multiple_submissions_statuses_xml))
+      expect(described_class.parse_submissions_status_response(multiple_submissions_statuses_xml))
         .to eq({"4414662024003wte794o" => :transmitted, "abcdefghijklmnopqrst" => :transmitted})
     end
   end

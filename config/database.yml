@@ -21,8 +21,13 @@ default: &default
 
 
 development:
-  <<: *default
-  database: efiler_api_development
+  primary:
+    <<: *default
+    database: efiler_api_development
+  queue:
+    <<: *default
+    database: efiler_api_development_queue
+    migrations_paths: db/queue_migrate
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
@@ -87,7 +92,19 @@ deploy_default: &deploy_default
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  <<: *deploy_default
+  primary:
+    <<: *deploy_default
+    database: efiler_api_production
+  queue:
+    <<: *deploy_default
+    database: efiler_api_production_queue
+    migrations_paths: db/queue_migrate
 
 demo:
-  <<: *deploy_default
+  primary:
+    <<: *deploy_default
+    database: efiler_api_demo
+  queue:
+    <<: *deploy_default
+    database: efiler_api_demo_queue
+    migrations_paths: db/queue_migrate
