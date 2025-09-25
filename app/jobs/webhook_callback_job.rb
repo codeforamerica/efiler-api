@@ -1,4 +1,6 @@
 class WebhookCallbackJob < ApplicationJob
+  queue_as :webhook_callback
+
   def perform(api_request_id, webhook_url, payload)
     payload_with_api_request_id = payload.merge({api_request_id:})
     uri = URI.parse(webhook_url)
