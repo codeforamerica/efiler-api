@@ -9,9 +9,8 @@ default: &default
       processes: 5
       polling_interval: 0.1
     - queues: webhook_callbacks
-      # We want our callbacks to not be blocked by each other, but we know they are threadsafe so we use a multi-threaded
-      # worker with the same number of threads as there are mef queue workers (in case they all trigger webhooks simultaneously)
-      threads: 5
+      # We want our callbacks to execute concurrently, but we know they are threadsafe so we use a multi-threaded worker
+      threads: 3
       processes: 1
       polling_interval: 0.1
 

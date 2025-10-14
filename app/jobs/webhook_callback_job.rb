@@ -6,6 +6,7 @@ class WebhookCallbackJob < ApplicationJob
     uri = URI.parse(webhook_url)
     conn = Faraday.new(url: "#{uri.scheme}://#{uri.host}", headers: {"Content-Type" => "application/json"})
     conn.post(uri.path) do |req|
+      req.options.timeout = 5
       req.body = payload_with_api_request_id.to_json
     end
   end
