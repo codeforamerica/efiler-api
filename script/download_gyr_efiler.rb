@@ -1,6 +1,6 @@
 require_relative "../config/environment"
 
-CURRENT_VERSION = "d8645b36cf2a9faa0593edb703411d8f4bea10df"
+CURRENT_VERSION = "8c46c9dccfc4da4b0acec5813966b1ba68abe245"
 download_paths = [
   "gyr_efiler/gyr-efiler-classes-#{CURRENT_VERSION}.zip",
   "gyr_efiler/gyr-efiler-config-#{CURRENT_VERSION}.zip"
