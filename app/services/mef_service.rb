@@ -1,7 +1,7 @@
 # TODO: implement .with_lock or equivalent to prevent too many connections with mef (?)
 class MefService
   # TODO: update to most recent commit
-  CURRENT_VERSION = "d8645b36cf2a9faa0593edb703411d8f4bea10df"
+  CURRENT_VERSION = "8c46c9dccfc4da4b0acec5813966b1ba68abe245"
   RETRYABLE_LOG_CONTENTS = [
     /Transaction Result: The server sent HTTP status code 302: Moved Temporarily/,
     /connect timed out - Fault Code: soap:Server/,
