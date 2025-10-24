@@ -3,15 +3,24 @@ default: &default
     - polling_interval: .1
       batch_size: 500
   workers:
-    - queues: "*"
+    - queues: mef
+      # We are constrained by MeF to 5 concurrent connections, so we use a limit of 5 single-threaded workers
       threads: 1
-      processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
+      processes: 3
+      polling_interval: 0.1
+    - queues: webhook_callbacks
+      # We want our callbacks to execute concurrently, but we know they are threadsafe so we use a multi-threaded worker
+      threads: 3
+      processes: 1
       polling_interval: 0.1
 
 development:
   <<: *default
 
 test:
+  <<: *default
+
+demo:
   <<: *default
 
 production:
