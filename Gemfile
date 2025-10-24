@@ -47,3 +47,5 @@ group :development, :test do
   gem "standard", require: false
   gem "webmock"
 end
+
+gem "openssl", ">= 3.3.1"
