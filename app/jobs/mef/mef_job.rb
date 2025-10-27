@@ -2,6 +2,7 @@ module Mef
   class MefJob < ApplicationJob
     attr_accessor :webhook_url, :api_request_id, :mef_credentials
 
+    queue_as :mef
     retry_on MefService::RetryableError
 
     after_discard do |job, exception|
