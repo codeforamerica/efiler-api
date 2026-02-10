@@ -2,7 +2,7 @@ name: Deploy to AWS Demo
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -56,21 +56,35 @@ jobs:
             --value "$IMAGE_TAG" \
             --overwrite
 
+      - name: Get a deployment token
+        uses: actions/create-github-app-token@v2
+        id: token
+        with:
+          app-id: ${{ secrets.DEPLOYMENT_APP_ID }}
+          private-key: ${{ secrets.DEPLOYMENT_APP_KEY }}
+          owner: codeforamerica
+          repositories: tax-benefits-backend
+
       - name: Trigger infrastructure deployment
-        run: |
-          # Set the required variables
-          repo_owner="codeforamerica"
-          repo_name="tax-benefits-backend"
-          event_type="deploy"
-          environment="efiler-api-demo"
-          config="demo.efiler-api.fileyourstatetaxes.org"
-          curl -L \
-            -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.DEPLOY_PAT }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/$repo_owner/$repo_name/dispatches \
-            -d "{\"event_type\": \"$event_type\", \"client_payload\": {\"environment\": \"$environment\", \"config\": \"$config\"}}"
+        uses: codex-/return-dispatch@v3
+        id: dispatch
+        with:
+          token: ${{ steps.token.outputs.token }}
+          # Update this to match the reference (branch, tag, or
+          # commit SHA) you want to deploy.
+          ref: main
+          # Replace this with the name of the target repository.
+          repo: tax-benefits-backend
+          owner: codeforamerica
+          # Replace this with the name of the workflow to call.
+          workflow: deploy.yaml
+          # Workflow inputs should be formatted as JSON. You can
+          # pass additional inputs as needed.
+          workflow_inputs: |
+            {
+              "environment": "efiler-api-demo",
+              "config": "demo.efiler-api.fileyourstatetaxes.org"
+            }
 
       - name: Notify deploy failure on Slack
         uses: 8398a7/action-slack@v3
@@ -81,3 +95,4 @@ jobs:
           fields: message,commit,author,workflow,took
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
