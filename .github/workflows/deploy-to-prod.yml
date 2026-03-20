@@ -55,7 +55,7 @@ jobs:
             --overwrite
 
       - name: Get a deployment token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         id: token
         with:
           app-id: ${{ secrets.DEPLOYMENT_APP_ID }}
