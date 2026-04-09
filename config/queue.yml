@@ -8,7 +8,7 @@ default: &default
       threads: 1
       processes: 3
       polling_interval: 0.1
-    - queues: webhook_callbacks
+    - queues: webhook_callback
       # We want our callbacks to execute concurrently, but we know they are threadsafe so we use a multi-threaded worker
       threads: 3
       processes: 1
