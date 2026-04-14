@@ -95,7 +95,7 @@ jobs:
 
       - name: Fail unless the workflow succeeded
         if: ${{ steps.waiter.outputs.conclusion != 'success' }}
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             core.setFailed('Deployment workflow completed with status: ${{ steps.waiter.outputs.conclusion }}')
