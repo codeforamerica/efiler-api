@@ -36,6 +36,8 @@ gem "aws-sdk-s3"
 gem "aws-sdk-secretsmanager"
 gem "open3"
 gem "faraday"
+gem "rack-session", ">= 2.1.2"
+gem "addressable"
 
 group :development, :test do
   gem "dotenv-rails"
