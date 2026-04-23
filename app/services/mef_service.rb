@@ -33,11 +33,17 @@ class MefService
       java = ENV["VITA_MIN_JAVA_HOME"] ? File.join(ENV["VITA_MIN_JAVA_HOME"], "bin", "java") : "java"
 
       argv = [java, "-cp", classes_zip_path, "org.codeforamerica.gyr.efiler.App", config_dir, mef_credentials[:mef_env], *args]
+      r, w = IO.pipe
       pid = Process.spawn(*argv,
         unsetenv_others: true,
         chdir: working_directory,
-        in: "/dev/null")
+        in: "/dev/null",
+        out: w,
+        err: [:child, :out])
+      w.close
       Process.wait(pid)
+      process_output = r.read
+      r.close
       raise StandardError.new("Process failed to exit?") unless $?.exited?
 
       exit_code = $?.exitstatus
@@ -48,7 +54,7 @@ class MefService
         elsif RETRYABLE_LOG_CONTENTS.any? { |contents| log_contents.match(contents) }
           raise RetryableError, log_contents
         else
-          raise StandardError, log_contents
+          raise StandardError, "Java output:\n#{process_output}\nMeF SDK log:\n#{log_contents}"
         end
       end
 
