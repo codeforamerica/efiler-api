@@ -54,7 +54,7 @@ class MefService
         elsif RETRYABLE_LOG_CONTENTS.any? { |contents| log_contents.match(contents) }
           raise RetryableError, log_contents
         else
-          raise StandardError, "Java output:\n#{process_output}\nMeF SDK log:\n#{log_contents}"
+          raise StandardError, "Non-Retryable Mef Error\nJava output:\n#{process_output}\nMeF SDK log:\n#{log_contents}"
         end
       end
 
