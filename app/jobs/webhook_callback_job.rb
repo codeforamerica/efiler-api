@@ -3,9 +3,9 @@ class WebhookCallbackJob < ApplicationJob
 
   def perform(api_request_id, webhook_url, payload)
     payload_with_api_request_id = payload.merge({api_request_id:})
-    uri = URI.parse(webhook_url)
-    conn = Faraday.new(url: "#{uri.scheme}://#{uri.host}", headers: {"Content-Type" => "application/json"})
-    conn.post(uri.path) do |req|
+    webhook_uri = URI.parse(webhook_url)
+    conn = Faraday.new(url: webhook_uri.origin, headers: {"Content-Type" => "application/json"})
+    conn.post(webhook_uri.path) do |req|
       req.options.timeout = 5
       req.body = payload_with_api_request_id.to_json
     end

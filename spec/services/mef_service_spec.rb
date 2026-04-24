@@ -40,7 +40,7 @@ describe MefService do
       end
 
       before do
-        allow(Process).to receive(:spawn) do |_argv, chdir:, unsetenv_others:, in:|
+        allow(Process).to receive(:spawn) do |_argv, chdir:, unsetenv_others:, in:, out:, err:|
           File.binwrite("#{chdir}/output/gyr-efiler-output.zip", zip_data)
 
           `true` # Run a successful command so that $? is set
@@ -58,7 +58,7 @@ describe MefService do
 
     context "command failure" do
       before do
-        allow(Process).to receive(:spawn) do |_argv, chdir:, unsetenv_others:, in:|
+        allow(Process).to receive(:spawn) do |_argv, chdir:, unsetenv_others:, in:, out:, err:|
           File.binwrite("#{chdir}/audit_log.txt", log_output)
 
           `false` # Run a command so that $? is set
@@ -71,11 +71,22 @@ describe MefService do
 
       context "for unknown errors" do
         let(:log_output) { "Earlier line\nLogin Certificate: blahBlahBlah\nLog output" }
+        let(:stdout_output) { "Java exception: blew up at line 42" }
+
+        before do
+          allow(Process).to receive(:spawn) do |_argv, chdir:, unsetenv_others:, in:, out:, err:|
+            File.binwrite("#{chdir}/audit_log.txt", log_output)
+            out.write(stdout_output)
+
+            `false`
+            0
+          end
+        end
 
         it "raises an exception with the log output" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(StandardError, "Earlier line\nLogin Certificate: blahBlahBlah\nLog output")
+          }.to raise_error(StandardError, "Non-Retryable Mef Error\nJava output:\n#{stdout_output}\nMeF SDK log:\n#{log_output}")
         end
       end
 
