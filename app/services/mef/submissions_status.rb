@@ -1,6 +1,6 @@
 class Mef::SubmissionsStatus
-  TRANSMITTED_STATUSES = ["Received", "Ready for Pickup", "Ready for Pick-Up", "Sent to State", "Received by State", "Rejected Acknowledgment Created"].to_set.freeze
-  READY_FOR_ACK_STATUSES = ["Denied by IRS", "Acknowledgement Received from State", "Acknowledgement Retrieved", "Notified"].to_set.freeze
+  TRANSMITTED_STATUSES = ["Received", "Ready for Pickup", "Ready for Pick-Up", "Sent to State", "Received by State"].to_set.freeze
+  READY_FOR_ACK_STATUSES = ["Denied by IRS", "Acknowledgement Received from State", "Acknowledgement Retrieved", "Notified", "Rejected Acknowledgement Created", "Rejected Acknowledgement Retrieved"].to_set.freeze
 
   def self.parse_submissions_status_response(response)
     doc = Nokogiri::XML(response)
