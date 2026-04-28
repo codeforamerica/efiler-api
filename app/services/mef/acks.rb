@@ -18,7 +18,7 @@ class Mef::Acks
         :failed
       end
 
-      if results.key? irs_submission_id
+      if results.key?(irs_submission_id)
         results[irs_submission_id][:status] = status  # take the most recent status, which will be last in the list
         results[irs_submission_id][:error_messages] += error_messages
       else
