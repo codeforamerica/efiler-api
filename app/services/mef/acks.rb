@@ -1,21 +1,33 @@
 class Mef::Acks
   def self.parse_acks_response(response)
     doc = Nokogiri::XML(response)
+    results = {}
 
-    doc.css("AcknowledgementList Acknowledgement").to_h do |ack|
+    doc.css("AcknowledgementList Acknowledgement").each do |ack|
       irs_submission_id = ack.css("SubmissionId").text.strip
-      status = ack.css("AcceptanceStatusTxt").text.strip.downcase
+      # MeF lists acks oldest-first. Multiple acks for one submission_id only
+      # arise from resubmission attempts (rejected as non-unique), so the first
+      # ack carries the original submission's outcome.
+      next if results.key?(irs_submission_id)
 
-      status_code = if ["rejected", "r", "denied by irs"].include?(status)
-        :rejected
-      elsif ["accepted", "a"].include?(status)
-        :accepted
-      elsif ["exception"].include?(status)
-        :accepted_but_imperfect
-      else
-        :failed
-      end
-      [irs_submission_id, status_code]
+      results[irs_submission_id] = {
+        irs_submission_id:,
+        status: status_code(ack),
+        error_messages: ack.css("ValidationErrorList ValidationErrorGrp ErrorMessageTxt").map(&:text)
+      }
+    end
+
+    results.values
+  end
+
+  def self.status_code(ack)
+    case ack.css("AcceptanceStatusTxt").text.strip.downcase
+    when "rejected", "r", "denied by irs"
+      :rejected
+    when "accepted", "a", "exception"
+      :accepted
+    else
+      :failed
     end
   end
 end

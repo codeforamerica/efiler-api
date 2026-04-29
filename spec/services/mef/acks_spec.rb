@@ -5,16 +5,14 @@ describe Mef::Acks do
     response = file_fixture("irs_acknowledgement.xml").read
 
     expect(described_class.parse_acks_response(response))
-      .to match_array(
-            [
-              ["9999992021197yrv4rvl", :accepted],
-              ["9999992021197yrv4rab", :accepted],
-              ["9999992021197yrv4rcd", :rejected],
-              ["9999992021197yrv4ref", :rejected],
-              ["9999992021197yrv4rgh", :rejected],
-              ["9999992021197yrv4rij", :accepted_but_imperfect],
-              ["9999992021197yrv4rkl", :failed]
-            ]
-          )
+      .to contain_exactly(
+        {irs_submission_id: "9999992021197yrv4rvl", status: :accepted, error_messages: []},
+        {irs_submission_id: "9999992021197yrv4rab", status: :accepted, error_messages: []},
+        {irs_submission_id: "9999992021197yrv4rcd", status: :rejected, error_messages: ["'DeviceId' in 'AtSubmissionCreationGrp' in 'FilingSecurityInformation' in the Return Header must have a value.", "'DeviceId' in 'AtSubmissionFilingGrp' in 'FilingSecurityInformation' in the Return Header must have a value."]},
+        {irs_submission_id: "9999992021197yrv4ref", status: :rejected, error_messages: ["ack error 1"]},
+        {irs_submission_id: "9999992021197yrv4rgh", status: :rejected, error_messages: []},
+        {irs_submission_id: "9999992021197yrv4rij", status: :accepted, error_messages: []},
+        {irs_submission_id: "9999992021197yrv4rkl", status: :failed, error_messages: []}
+      )
   end
 end

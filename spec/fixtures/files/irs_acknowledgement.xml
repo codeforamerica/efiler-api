@@ -82,6 +82,39 @@
     <AcceptanceStatusTxt>R</AcceptanceStatusTxt>
     <ContainedAlertsInd>false</ContainedAlertsInd>
     <StatusDt>2021-07-16</StatusDt>
+    <ValidationErrorList errorCnt="2">
+      <ValidationErrorGrp errorId="1">
+        <DocumentId>NA</DocumentId>
+        <XpathContentTxt>/efile:Return/efile:ReturnHeader</XpathContentTxt>
+        <ErrorCategoryCd>Missing Data</ErrorCategoryCd>
+        <ErrorMessageTxt>ack error 1</ErrorMessageTxt>
+        <RuleNum>IND-189</RuleNum>
+        <SeverityCd>Reject and Stop</SeverityCd>
+        <FieldValueTxt/>
+      </ValidationErrorGrp>
+    </ValidationErrorList>
+  </Acknowledgement>
+  <Acknowledgement submissionVersionNum="2020v5.1" validatingSchemaVersionNum="2020v5.1">
+    <SubmissionId>9999992021197yrv4ref</SubmissionId>
+    <EFIN>999999</EFIN>
+    <TaxYr>2020</TaxYr>
+    <ExtndGovernmentCd>IRS</ExtndGovernmentCd>
+    <SubmissionTyp>1040</SubmissionTyp>
+    <ExtndSubmissionCategoryCd>IND</ExtndSubmissionCategoryCd>
+    <AcceptanceStatusTxt>R</AcceptanceStatusTxt>
+    <ContainedAlertsInd>false</ContainedAlertsInd>
+    <StatusDt>2021-07-17</StatusDt>
+    <ValidationErrorList errorCnt="2">
+      <ValidationErrorGrp errorId="1">
+        <DocumentId>NA</DocumentId>
+        <XpathContentTxt>/efile:Return/efile:ReturnHeader</XpathContentTxt>
+        <ErrorCategoryCd>Missing Data</ErrorCategoryCd>
+        <ErrorMessageTxt>ack error 2</ErrorMessageTxt>
+        <RuleNum>IND-189</RuleNum>
+        <SeverityCd>Reject and Stop</SeverityCd>
+        <FieldValueTxt/>
+      </ValidationErrorGrp>
+    </ValidationErrorList>
   </Acknowledgement>
   <Acknowledgement submissionVersionNum="2020v5.1" validatingSchemaVersionNum="2020v5.1">
     <SubmissionId>9999992021197yrv4rgh</SubmissionId>
