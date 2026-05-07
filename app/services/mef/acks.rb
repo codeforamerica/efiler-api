@@ -15,13 +15,13 @@ class Mef::Acks
         status: status_code(ack),
         errors: ack.css("ValidationErrorList ValidationErrorGrp").map do |grp|
           {
-            code:        grp.at_css("RuleNum")&.text,
-            category:    grp.at_css("ErrorCategoryCd")&.text,
-            severity:    grp.at_css("SeverityCd")&.text,
-            message:     grp.at_css("ErrorMessageTxt")&.text,
+            code: grp.at_css("RuleNum")&.text,
+            category: grp.at_css("ErrorCategoryCd")&.text,
+            severity: grp.at_css("SeverityCd")&.text,
+            message: grp.at_css("ErrorMessageTxt")&.text,
             field_value: grp.at_css("FieldValueTxt")&.text.presence,
-            xpath:       grp.at_css("XpathContentTxt")&.text,
-            document_id: grp.at_css("DocumentId")&.text,
+            xpath: grp.at_css("XpathContentTxt")&.text,
+            document_id: grp.at_css("DocumentId")&.text
           }
         end
       }
