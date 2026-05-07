@@ -4,19 +4,25 @@ describe Api::V0::EfileController, type: :controller do
   let(:api_client_name) { "api_client" }
   let(:api_request_id) { "fake-uuid" }
   let(:mef_credentials) { {mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz"} }
+  let(:callback_secret) { "test-secret" }
 
   before do
     allow_any_instance_of(described_class).to receive(:verify_client_name_and_signature).and_return(true)
     allow_any_instance_of(described_class).to receive(:api_client_name).and_return(api_client_name)
     allow_any_instance_of(described_class).to receive(:api_request_id).and_return(api_request_id)
     allow(MefService).to receive(:get_mef_credentials).and_return(mef_credentials)
+    ENV["EFILER_API_CALLBACK_SECRET"] = callback_secret
   end
 
   after do
-    stub_request(:post, webhook_url).with(body: expected_webhook_request_body)
+    stub_request(:post, webhook_url).with(
+      body: expected_webhook_request_body,
+      headers: {"X-EFiler-Callback-Secret" => callback_secret}
+    )
     clear_performed_jobs
     perform_enqueued_jobs(only: WebhookCallbackJob)
     assert_performed_jobs 1
+    ENV.delete("EFILER_API_CALLBACK_SECRET")
   end
 
   describe "#submit" do
