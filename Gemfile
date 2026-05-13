@@ -47,6 +47,7 @@ group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
   gem "standard", require: false
+  gem "climate_control"
   gem "webmock"
 end
 
