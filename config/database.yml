@@ -65,10 +65,14 @@ test:
 deploy_default: &deploy_default
   <<: *default
   database: efiler_api
-  host: <%= ENV["DATABASE_HOST"] if ENV["DATABASE_USER"] %>
-  username: <%= ENV["DATABASE_USER"] if ENV["DATABASE_USER"] %>
-  password: <%= ENV["DATABASE_PASSWORD"] if ENV["DATABASE_PASSWORD"] %>
+  host: <%= ENV.fetch("DATABASE_HOST", "localhost") %>
+  username: "<%= ENV["DATABASE_USER"] if ENV["DATABASE_USER"] %>"
+  <% if ENV.fetch("DATABASE_AUTH", "password") == "iam" %>
+  aws_rds_iam_auth_token_generator: 'default'
+  <% else %>
+  password: "<%= ENV["DATABASE_PASSWORD"] if ENV["DATABASE_PASSWORD"].present? %>"
   url: <%= ENV["DATABASE_URL"] %>
+  <% end %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
