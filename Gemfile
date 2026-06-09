@@ -52,3 +52,4 @@ group :development, :test do
 end
 
 gem "openssl", ">= 3.3.1"
+gem "pg-aws_rds_iam", "~> 0.8.0"
