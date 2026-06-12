@@ -32,7 +32,15 @@ class MefService
       # /Library/Java/JavaVirtualMachines
       java = ENV["VITA_MIN_JAVA_HOME"] ? File.join(ENV["VITA_MIN_JAVA_HOME"], "bin", "java") : "java"
 
-      argv = [java, "-cp", classes_zip_path, "org.codeforamerica.gyr.efiler.App", config_dir, mef_credentials[:mef_env], *args]
+      # Diagnostic: when MEF_WIRE_DUMP is set, have Metro print the full SOAP/MTOM HTTP
+      # request & response (including every MIME part's Content-Type header) to stdout,
+      # before TLS, so we can inspect the exact charset we send to MeF. See tmp/mef_wire_dump.log.
+      jvm_args = []
+      if ENV["MEF_WIRE_DUMP"].present?
+        jvm_args << "-Dcom.sun.xml.ws.transport.http.client.HttpTransportPipe.dump=true"
+      end
+
+      argv = [java, *jvm_args, "-cp", classes_zip_path, "org.codeforamerica.gyr.efiler.App", config_dir, mef_credentials[:mef_env], *args]
       r, w = IO.pipe
       pid = Process.spawn(*argv,
         unsetenv_others: true,
@@ -45,6 +53,12 @@ class MefService
       process_output = r.read
       r.close
       raise StandardError.new("Process failed to exit?") unless $?.exited?
+
+      if ENV["MEF_WIRE_DUMP"].present?
+        dump_path = Rails.root.join("tmp", "mef_wire_dump.log")
+        File.write(dump_path, process_output)
+        Rails.logger.info("MeF wire dump written to #{dump_path}")
+      end
 
       exit_code = $?.exitstatus
       if exit_code != 0
