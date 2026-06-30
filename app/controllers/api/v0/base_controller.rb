@@ -16,18 +16,24 @@ class Api::V0::BaseController < ApplicationController
   end
 
   def showable_error(exception)
-    Rails.logger.error("Encountered showable error: #{exception}")
+    Rails.logger.error("Encountered showable error: #{loggable_exception(exception)}")
     render json: exception.message, status: :bad_request
   end
 
   def aws_error(exception)
-    Rails.logger.error("Encountered error while contacting AWS: #{exception}")
+    Rails.logger.error("Encountered error while contacting AWS: #{loggable_exception(exception)}")
     head :unauthorized
   end
 
   def jwt_error(exception)
-    Rails.logger.error("Encountered JWT verification error: #{exception}")
+    Rails.logger.error("Encountered JWT verification error: #{loggable_exception(exception)}")
     head :unauthorized
+  end
+
+  # Exception messages here can embed submitted/IRS data, so production logs the class alone;
+  # non-production logs the full exception for debugging.
+  def loggable_exception(exception)
+    Rails.env.production? ? exception.class : exception
   end
 
   def verify_client_name_and_signature
