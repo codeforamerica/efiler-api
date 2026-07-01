@@ -11,7 +11,8 @@
 Rails.application.config.filter_parameters += [
   :passw, :email, :secret, :token, :_key, :crypt, :salt, :certificate, :otp, :ssn, :cvv, :cvc,
 
-  # The tax-return submission bundle (base64 ZIP of return XML); never useful in logs
+  # The tax-return submission bundle (base64 ZIP of return XML): sensitive PII, an opaque multi-MB
+  # blob as-logged, and available for debugging through the stored artifact rather than the request log
   :submission_bundle,
 
   # Client callback URL (may carry credentials/tokens in the path or query)
