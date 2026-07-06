@@ -183,6 +183,31 @@ describe Api::V0::EfileController, type: :controller do
         assert_performed_jobs 1
         expect(MefService).to have_received(:run_efiler_command).with(mef_credentials, "acks", "123", "456")
       end
+
+      it "logs the discard with the exception class and request id but not the error message in production" do
+        allow(Rails.env).to receive(:production?).and_return(true)
+        allow(Rails.logger).to receive(:error).and_call_original
+
+        get :acks, params: {id: [123, 456], webhook_url: webhook_url}
+        assert_raises(StandardError) do
+          perform_enqueued_jobs(only: Mef::AcksJob)
+        end
+
+        expect(Rails.logger).to have_received(:error)
+          .with(/Mef::AcksJob \(api_request_id=fake-uuid\) has been discarded due to StandardError/)
+        expect(Rails.logger).not_to have_received(:error).with(/fake non-retryable error/)
+      end
+
+      it "logs the full exception message in non-production environments" do
+        allow(Rails.logger).to receive(:error).and_call_original
+
+        get :acks, params: {id: [123, 456], webhook_url: webhook_url}
+        assert_raises(StandardError) do
+          perform_enqueued_jobs(only: Mef::AcksJob)
+        end
+
+        expect(Rails.logger).to have_received(:error).with(/fake non-retryable error/)
+      end
     end
   end
 end
