@@ -65,7 +65,7 @@ jobs:
           repositories: tax-benefits-backend
 
       - name: Trigger infrastructure deployment
-        uses: codex-/return-dispatch@v3
+        uses: codex-/return-dispatch@v4
         id: dispatch
         with:
           token: ${{ steps.token.outputs.token }}
