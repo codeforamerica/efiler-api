@@ -107,7 +107,7 @@ GEM
     bigdecimal (4.1.2)
     bootsnap (1.24.6)
       msgpack (~> 1.2)
-    brakeman (8.0.5)
+    brakeman (8.0.6)
       racc
     builder (3.3.0)
     climate_control (1.2.0)
@@ -401,4 +401,4 @@ DEPENDENCIES
   webmock
 
 BUNDLED WITH
-   4.0.17
+  4.0.17
