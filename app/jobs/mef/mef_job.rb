@@ -4,13 +4,13 @@ module Mef
 
     queue_as :mef
 
-    # A retryable MeF failure (e.g. a 302 "Moved Temporarily" on Login during an
-    # IRS maintenance/redirect window) can persist for hours. Retry up to 10 times with a
-    # polynomial backoff (~3s, 18s, 83s, ~4m, ~10m, ~21m, ~40m, ~68m, ~1.8h, ~2.8h) so
-    # we have a better chance of outlasting a transient outage before we give up and relay the
-    # failure to the client via after_discard.
-    # See https://dev.to/davidteren/the-15-year-naming-bug-how-rails-finally-got-polynomiallylonger-right-3g36
-    MEF_RETRY_ATTEMPTS = 10
+    # A retryable MeF failure (e.g. a 302 "Moved Temporarily" on Login during
+    # an IRS maintenance/redirect window) can persist for hours. Retry up to 12
+    # times with a polynomial backoff so we have a better chance of outlasting a
+    # transient outage before we give up and relay the failure to the client via
+    # after_discard.  See
+    # https://dev.to/davidteren/the-15-year-naming-bug-how-rails-finally-got-polynomiallylonger-right-3g36
+    MEF_RETRY_ATTEMPTS = 12
     retry_on MefService::RetryableError, wait: :polynomially_longer, attempts: MEF_RETRY_ATTEMPTS
 
     after_discard do |job, exception|
