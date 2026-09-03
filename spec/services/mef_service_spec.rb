@@ -158,6 +158,16 @@ describe MefService do
         end
       end
 
+      context "when 'forbidden' for efile" do
+        let(:log_output) { "Earlier line\nLogin Certificate: blahBlahBlah\nTransaction Result: The server sent HTTP status code 403: Forbidden\nLog output" }
+
+        it "raises a RetryableError" do
+          expect {
+            described_class.run_efiler_command(mef_credentials)
+          }.to raise_error(MefService::RetryableError)
+        end
+      end
+
       context "when failed to parse XML" do
         let(:log_output) { "Transaction Result: Fault String: IDP Rule 'MeF Process Error IDP Rule' aborted processing.__Failed to parse XML document: Characters larger than 4 bytes are not supported: byte 0x8b implies a length of more than 4 bytes - Fault Code: soap:Client - Detail: <?xml version=\"1.0\" encoding=\"UTF-8\"?>" }
 
