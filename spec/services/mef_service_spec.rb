@@ -83,10 +83,53 @@ describe MefService do
           end
         end
 
-        it "raises an exception with the log output" do
+        it "raises an exception with the redacted log, and without the Java output" do
           expect {
             described_class.run_efiler_command(mef_credentials)
-          }.to raise_error(StandardError, "Non-Retryable Mef Error\nJava output:\n#{stdout_output}\nMeF SDK log:\n#{log_output}")
+          }.to raise_error(StandardError, "Non-Retryable Mef Error\nMeF SDK log:\nLogin Certificate: [REDACTED]")
+        end
+      end
+
+      context "when the audit log carries credentials and taxpayer data" do
+        let(:log_output) do
+          <<~LOG
+            Name of Service Call: Login
+            Message ID of Service Call: abcdefg
+            ETIN of Service Call: 1234
+            ASID: 121212
+            Login Certificate: abc123
+            abc123continuationline
+            SAML SMSESSION Attribute Value: abc123
+            Request data: <?xml version="1.0"?>
+            <Submission>taxpayer name and tin</Submission>
+            Unrecognised Future Field: whatever the SDK adds next
+            Transaction Result: The server sent HTTP status code 418: I am a teapot
+          LOG
+        end
+
+        # Multi-line values (the certificate, the request body) are suppressed along with
+        # the field that opened them, and an unrecognised label is redacted rather than
+        # passed through.
+        let(:expected_message) do
+          <<~MESSAGE.chomp
+            Non-Retryable Mef Error
+            MeF SDK log:
+            Name of Service Call: Login
+            Message ID of Service Call: [REDACTED]
+            ETIN of Service Call: [REDACTED]
+            ASID: [REDACTED]
+            Login Certificate: [REDACTED]
+            SAML SMSESSION Attribute Value: [REDACTED]
+            Request data: [REDACTED]
+            Unrecognised Future Field: [REDACTED]
+            Transaction Result: The server sent HTTP status code 418: I am a teapot
+          MESSAGE
+        end
+
+        it "keeps only the fields that explain the failure" do
+          expect {
+            described_class.run_efiler_command(mef_credentials)
+          }.to raise_error(StandardError, expected_message)
         end
       end
 
