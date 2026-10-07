@@ -17,6 +17,25 @@ class MefService
     /HTTP transport error: javax.net.ssl.SSLException/
   ]
 
+  # The MeF SDK's audit log records the ETIN, ASID, login certificate and SAML session
+  # tokens in cleartext, alongside the submission itself, and offers no way to turn that
+  # off. Its contents reach an exception message, which is logged and relayed to the
+  # client, so reduce it to the fields that explain a failure. Allowlisted rather than
+  # denylisted: a field a future SDK version adds is then redacted by default.
+  #
+  # Append-only: adding a field is the only change that widens what reaches the logs and the
+  # client, and never removing keeps one list correct across the two gyr-efiler versions demo
+  # and production run during ATS testing. `bin/rails mef:audit_log_labels` shows what the
+  # pinned build writes and how each field is treated.
+  AUDIT_LOG_ALLOWED_FIELDS = [
+    "Name of Service Call",
+    "Transaction Submission Date/Time",
+    "Transaction IRS Response Date/Time",
+    "Transaction Result",
+    "Toolkit Version",
+    "IssueInstant"
+  ]
+
   def self.get_mef_credentials(api_client_name)
     aws_client = Aws::SecretsManager::Client.new
     environment = Rails.env.production? ? "production" : "demo"
@@ -43,24 +62,50 @@ class MefService
         err: [:child, :out])
       w.close
       Process.wait(pid)
-      process_output = r.read
+      # Drain the pipe so the child can exit, but do not relay the Java output: it is
+      # unstructured, so it cannot be allowlisted the way the audit log can.
+      r.read
       r.close
       raise StandardError.new("Process failed to exit?") unless $?.exited?
 
       exit_code = $?.exitstatus
       if exit_code != 0
         log_contents = File.read(File.join(working_directory, "audit_log.txt"))
+        # Classify against the raw log and raise with the redacted copy, so redaction
+        # cannot change which failures are treated as retryable.
         if log_contents.split("\n").include?("Transaction Result: java.net.SocketTimeoutException: Read timed out")
-          raise RetryableError, log_contents
+          raise RetryableError, redact_audit_log(log_contents)
         elsif RETRYABLE_LOG_CONTENTS.any? { |contents| log_contents.match(contents) }
-          raise RetryableError, log_contents
+          raise RetryableError, redact_audit_log(log_contents)
         else
-          raise StandardError, "Non-Retryable Mef Error\nJava output:\n#{process_output}\nMeF SDK log:\n#{log_contents}"
+          raise StandardError, "Non-Retryable Mef Error\nMeF SDK log:\n#{redact_audit_log(log_contents)}"
         end
       end
 
       get_single_file_from_zip(Dir.glob(File.join(working_directory, "output", "*.zip"))[0])
     end
+  end
+
+  # A field runs from its label to the start of the next one, so a value spanning many lines —
+  # certificates and request bodies both do — is one chunk, kept or dropped whole. Text before
+  # the first label, and any label not named above, is dropped. Redacted fields keep a
+  # placeholder so the shape of the failure is still legible.
+  private_class_method def self.redact_audit_log(contents)
+    label_pattern = /[A-Za-z][A-Za-z0-9 \/]*:/
+    fields = contents.to_s.split(/(?=^#{label_pattern})/)
+
+    redacted = fields.filter_map do |field|
+      label = field[/\A#{label_pattern}/]&.delete_suffix(":")
+      next if label.nil?
+
+      if AUDIT_LOG_ALLOWED_FIELDS.include?(label)
+        field.rstrip
+      else
+        "#{label}: [REDACTED]"
+      end
+    end
+
+    redacted.join("\n")
   end
 
   private_class_method def self.create_config_dir(working_directory, mef_credentials)

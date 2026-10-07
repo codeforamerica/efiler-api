@@ -4,6 +4,10 @@ module Mef
 
     queue_as :mef
 
+    # SubmitJob's arguments carry the base64 submission bundle, which ActiveJob would
+    # otherwise interpolate into every Enqueued/Performing/Performed line.
+    self.log_arguments = false
+
     # A retryable MeF failure (e.g. a 302 "Moved Temporarily" on Login during
     # an IRS maintenance/redirect window) can persist for hours. Retry up to 12
     # times with a polynomial backoff so we have a better chance of outlasting a
