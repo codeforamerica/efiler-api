@@ -7,16 +7,23 @@ module MefResponses
       %(<saml:AttributeStatement><saml:Attribute AttributeName="SMSESSION" AttributeNamespace="mef"><saml:AttributeValue>#{session_value}</saml:AttributeValue></saml:Attribute></saml:AttributeStatement></saml:Assertion>)
   end
 
-  def self.envelope(body, security: "")
-    %(<?xml version="1.0" encoding="UTF-8"?><soap:Envelope xmlns:soap="#{Mef::Client::Envelope::SOAP_ENV}"><soap:Header>) +
+  def self.envelope(body, security: "", envelope_namespaces: "")
+    %(<?xml version="1.0" encoding="UTF-8"?><soap:Envelope xmlns:soap="#{Mef::Client::Envelope::SOAP_ENV}"#{envelope_namespaces}><soap:Header>) +
       %(<wsse:Security xmlns:wsse="#{Mef::Client::Envelope::WSSE}">#{security}</wsse:Security></soap:Header><soap:Body>#{body}</soap:Body></soap:Envelope>)
   end
 
-  def self.login(cookie: "jsession-1", assertion: saml_assertion)
+  # MeF sets JSESSIONID and a `dc` data-center cookie, each as its own Set-Cookie header.
+  def self.login(cookie: "jsession-1", dc: "dcs", assertion: saml_assertion, envelope_namespaces: "")
     {
       status: 200,
-      headers: {"Content-Type" => "text/xml; charset=utf-8", "Set-Cookie" => cookie && "JSESSIONID=#{cookie}; Path=/; Secure; HttpOnly"}.compact,
-      body: envelope(%(<LoginResponse xmlns="#{Mef::Client::Envelope::MSI}"><StatusTxt>Success</StatusTxt></LoginResponse>), security: assertion)
+      headers: {
+        "Content-Type" => "text/xml; charset=utf-8",
+        "Set-Cookie" => [
+          cookie && "JSESSIONID=#{cookie}; Path=/; Secure; HttpOnly",
+          dc && "dc=#{dc}; Path=/; Expires=Tue, 13 Oct 2026 14:15:00 GMT; Max-Age=900"
+        ].compact.presence
+      }.compact,
+      body: envelope(%(<LoginResponse xmlns="#{Mef::Client::Envelope::MSI}"><StatusTxt>Success</StatusTxt></LoginResponse>), security: assertion, envelope_namespaces:)
     }
   end
 
@@ -29,7 +36,7 @@ module MefResponses
   end
 
   # A transmitter response whose `attachment_element` carries a zip of `file_contents`.
-  def self.transmitter(operation, attachment_element, file_contents, cookie: nil)
+  def self.transmitter(operation, attachment_element, file_contents, cookie: nil, assertion: "")
     zip = Zip::OutputStream.write_buffer { |out|
       out.put_next_entry("response.xml")
       out.write(file_contents)
@@ -38,7 +45,7 @@ module MefResponses
       %(<#{attachment_element}><xop:Include xmlns:xop="#{Mef::Client::Mtom::XOP}" href="cid:attachment-1@mef"/></#{attachment_element}></#{operation}Response>)
     boundary = "uuid:response-boundary"
     multipart = "--#{boundary}\r\nContent-Id: <root@mef>\r\nContent-Type: application/xop+xml;charset=utf-8;type=\"text/xml\"\r\nContent-Transfer-Encoding: binary\r\n\r\n".b +
-      envelope(body).b + "\r\n--#{boundary}\r\nContent-Id: <attachment-1@mef>\r\nContent-Type: application/octet-stream\r\nContent-Transfer-Encoding: binary\r\n\r\n".b +
+      envelope(body, security: assertion).b + "\r\n--#{boundary}\r\nContent-Id: <attachment-1@mef>\r\nContent-Type: application/octet-stream\r\nContent-Transfer-Encoding: binary\r\n\r\n".b +
       zip.b + "\r\n--#{boundary}--".b
     {
       status: 200,

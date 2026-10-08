@@ -35,17 +35,43 @@ describe Mef::Client::Session do
       expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/Logout")
     end
 
-    it "carries the session cookie and echoes the Login SAML assertion, following the cookie as MeF reissues it" do
+    it "carries every session cookie and echoes the Login SAML assertion, following the cookies as MeF reissues them" do
       described_class.open(credentials, release) { |session| session.get_acks(["1234562026280abcdefg"]) }
 
       expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/mtom/GetAcks").with { |request|
         doc = soap_part(request)
-        request.headers["Cookie"] == "JSESSIONID=jsession-1" &&
+        request.headers["Cookie"] == "JSESSIONID=jsession-1; dc=dcs" &&
           request.headers["Soapaction"] == %("http://www.irs.gov/a2a/mef/mtom/GetAcks") &&
           doc.at_xpath("//wsse:Security/saml:Assertion//saml:AttributeValue", ns)&.text == "session-value" &&
           doc.at_xpath("//mtx:GetAcksRequest/mtx:SubmissionIdList/mtx:SubmissionId", ns)&.text == "1234562026280abcdefg"
       }
-      expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/Logout").with(headers: {"Cookie" => "JSESSIONID=jsession-2"})
+      expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/Logout").with(headers: {"Cookie" => "JSESSIONID=jsession-2; dc=dcs"})
+    end
+
+    it "echoes a newer SAML assertion when a later response carries one" do
+      stub_request(:post, "#{host}/a2a/mef/mtom/GetAcks")
+        .to_return(MefResponses.transmitter("GetAcks", "AcknowledgementListAttMTOM", ack_xml, assertion: MefResponses.saml_assertion("renewed")))
+
+      described_class.open(credentials, release) { |session| session.get_acks(["1234562026280abcdefg"]) }
+
+      expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/Logout").with { |request|
+        Nokogiri::XML(request.body).at_xpath("//saml:AttributeValue", ns)&.text == "renewed"
+      }
+    end
+
+    # MeF signs the assertion, so it must survive the trip into our request intact, including
+    # namespaces it inherited from the response envelope.
+    it "echoes the assertion canonically unchanged, even when it relies on namespaces declared above it" do
+      inherited = %(<saml:Assertion AssertionID="a-1" MajorVersion="1" MinorVersion="1"><ds:Signature><ds:SignatureValue>c2ln&#13;\nbmVk</ds:SignatureValue></ds:Signature></saml:Assertion>)
+      login = MefResponses.login(assertion: inherited, envelope_namespaces: %( xmlns:saml="#{MefResponses::SAML}" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"))
+      stub_request(:post, "#{host}/a2a/mef/Login").to_return(login)
+      original = Nokogiri::XML(login[:body]).at_xpath("//saml:Assertion", ns).canonicalize(Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0)
+
+      described_class.open(credentials, release) { |session| session.get_acks(["1234562026280abcdefg"]) }
+
+      expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/mtom/GetAcks").with { |request|
+        soap_part(request).at_xpath("//wsse:Security/saml:Assertion", ns).canonicalize(Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0) == original
+      }
     end
 
     it "keeps the operation's result when Logout fails, so a transmitted submission isn't retried and sent twice" do
@@ -109,8 +135,13 @@ describe Mef::Client::Session do
         container = Mef::Client::Mtom.resolve(doc.at_xpath("//mtx:SubmissionsAttMTOM", ns), attachments)
         entries = nil
         Zip::File.open_buffer(StringIO.new(container)) { |zip| entries = zip.entries.map { |e| [e.name, e.compression_method, zip.read(e)] } }
+        # MeF streams the container, so the local header itself must carry the CRC and sizes.
+        version, flags = container[4, 4].unpack("vv")
+        crc, compressed_size, size = container[14, 12].unpack("VVV")
 
         entries == [["1234562026286subtest.zip", Zip::Entry::STORED, bundle]] &&
+          version < 45 && flags & 0x8 == 0 &&
+          [crc, compressed_size, size] == [Zlib.crc32(bundle), bundle.bytesize, bundle.bytesize] &&
           doc.at_xpath("//mtx:SubmissionData/mtx:SubmissionId", ns).text == "1234562026286subtest" &&
           doc.at_xpath("//mtx:SubmissionData/mtx:ElectronicPostmarkTs", ns).text == "2026-10-13T14:00:00.500Z"
       }

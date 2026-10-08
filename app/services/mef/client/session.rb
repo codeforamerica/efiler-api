@@ -1,14 +1,16 @@
 module Mef
   module Client
     # One MeF A2A session: Login, any number of transmitter operations, then Logout. The session
-    # is carried by the JSESSIONID cookie and by the SAML assertion that Login returns, which
-    # every later request echoes.
+    # is carried by MeF's cookies (JSESSIONID, plus the `dc` data-center cookie) and by the SAML
+    # assertion that Login returns, which every later request echoes.
     class Session
       HOSTS = {"test" => "https://la.alt.www4.irs.gov", "prod" => "https://la.www4.irs.gov"}
       TIMEOUT = 600 # seconds, matching the toolkit's transport.properties
 
-      SAML_NAMESPACES = ["urn:oasis:names:tc:SAML:1.0:assertion", "urn:oasis:names:tc:SAML:2.0:assertion"]
       NAMESPACES = {"S" => Envelope::SOAP_ENV, "wsse" => Envelope::WSSE, "mefhdr" => Envelope::MEF_HEADER, "mtx" => Envelope::TRANSMITTER}
+      # Login returns it; like the toolkit, a newer one in any later response replaces it.
+      SAML_ASSERTION = "/S:Envelope/S:Header/wsse:Security/*[local-name()='Assertion' and " \
+        "(namespace-uri()='urn:oasis:names:tc:SAML:1.0:assertion' or namespace-uri()='urn:oasis:names:tc:SAML:2.0:assertion')]"
 
       # The failures the toolkit path has always retried: MeF maintenance redirects, gateway
       # authentication hiccups, outages, and session-limit or session-cookie faults.
@@ -36,14 +38,14 @@ module Mef
         @credentials = credentials
         @envelope = Envelope.new(credentials, release)
         @connection = connection || Faraday.new(HOSTS.fetch(credentials.mef_env), request: {timeout: TIMEOUT, open_timeout: TIMEOUT})
+        @cookies = {}
       end
 
       def login!
         doc = Signer.new(@credentials).sign(@envelope.login)
-        response = post("/a2a/mef/Login", "Login", "text/xml; charset=utf-8", Envelope.serialize(doc))
-        @saml_assertion = response.first.at_xpath("//wsse:Security/*[local-name()='Assertion' and (#{SAML_NAMESPACES.map { |ns| "namespace-uri()='#{ns}'" }.join(" or ")})]", NAMESPACES)
+        post("/a2a/mef/Login", "Login", "text/xml; charset=utf-8", Envelope.serialize(doc))
         raise Error, "MeF Login response has no SAML assertion" if @saml_assertion.nil?
-        raise Error, "MeF Login response set no JSESSIONID cookie" if @session_cookie.nil?
+        raise Error, "MeF Login response set no JSESSIONID cookie" unless @cookies.key?("JSESSIONID")
       end
 
       def logout!
@@ -76,10 +78,12 @@ module Mef
         single_file_in_zip(Mtom.resolve(element, response_attachments))
       end
 
-      # MeF takes a zip of submission zips; the toolkit stores each one uncompressed.
+      # MeF takes a zip of submission zips and reads it as a stream, so, as the toolkit does, each
+      # one is stored uncompressed with its size and CRC in the local header. Giving rubyzip the
+      # size up front keeps it from writing a Zip64 placeholder header instead.
       def submission_container(submission_id, bundle)
         Zip::OutputStream.write_buffer do |zip|
-          zip.put_next_entry("#{submission_id}.zip", "", Zip::ExtraField.new, Zip::Entry::STORED)
+          zip.put_next_entry(Zip::Entry.new(nil, "#{submission_id}.zip", compression_method: Zip::Entry::STORED, size: bundle.bytesize))
           zip.write(bundle)
         end.string
       end
@@ -98,12 +102,23 @@ module Mef
           "Accept" => "text/xml, multipart/related",
           "SOAPAction" => %("http://www.irs.gov/a2a/mef/#{soap_action}")
         }
-        headers["Cookie"] = "JSESSIONID=#{@session_cookie}" if @session_cookie
+        headers["Cookie"] = @cookies.map { |name, value| "#{name}=#{value}" }.join("; ") if @cookies.any?
         response = @connection.post(path, body, headers)
-        @session_cookie = response.headers["set-cookie"].to_s[/JSESSIONID=([^;,\s]+)/, 1] || @session_cookie
-        parse(path, response)
+        remember_cookies(response.headers["set-cookie"])
+        doc, attachments = parse(path, response)
+        @saml_assertion = doc.at_xpath(SAML_ASSERTION, NAMESPACES) || @saml_assertion
+        [doc, attachments]
       rescue Faraday::ConnectionFailed, Faraday::TimeoutError, Faraday::SSLError => e
         raise MefService::RetryableError, "MeF #{path}: #{e.class}"
+      end
+
+      # Like the toolkit, keeps every cookie MeF sets, by name, ignoring attributes. Faraday joins
+      # repeated Set-Cookie headers with ", ", which an Expires date can also contain.
+      def remember_cookies(set_cookie)
+        set_cookie.to_s.split(/,\s*(?=[^\s;,=]+=)/).each do |cookie|
+          name, value = cookie.split(";", 2).first.split("=", 2).map(&:strip)
+          @cookies[name] = value if name.present? && value
+        end
       end
 
       def parse(path, response)
