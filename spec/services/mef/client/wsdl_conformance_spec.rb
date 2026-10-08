@@ -50,6 +50,24 @@ describe "MeF client conformance to the IRS WSDLs" do
 
         expect(bodies.flat_map { |body| validation_errors(msi_schema, body) }).to be_empty
       end
+
+      # An MTOM element is schema-valid in its logical form, with the xop:Include replaced by
+      # the base64 content it stands for.
+      it "builds transmitter requests that MeFTransmitterServiceMTOM.xsd accepts" do
+        transmitter_schema = schema(release, "MeFTransmitterServiceMTOM.xsd")
+        ids = ["1234562026280abcdefg", "1234562026280hijklmn"]
+        requests = [
+          Mef::Client::Requests.get_acks(ids),
+          Mef::Client::Requests.get_submissions_status(ids),
+          Mef::Client::Requests.send_submissions(ids.first, Time.current, "attachment")
+        ].map do |xml|
+          Nokogiri::XML(xml).tap do |doc|
+            doc.xpath("//xop:Include", "xop" => Mef::Client::Mtom::XOP).each { |include| include.replace(Base64.strict_encode64("zip")) }
+          end.root
+        end
+
+        expect(requests.flat_map { |request| validation_errors(transmitter_schema, request) }).to be_empty
+      end
     end
   end
 end

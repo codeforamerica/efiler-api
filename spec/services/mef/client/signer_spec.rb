@@ -24,14 +24,14 @@ describe Mef::Client::Signer do
   end
 
   it "signs the MeFHeader and the Body so that the serialized envelope verifies against its own certificate" do
-    doc = described_class.new(credentials).sign!(login_envelope)
+    doc = described_class.new(credentials).sign(login_envelope)
 
     expect(doc.xpath("//ds:Reference", ns).map { |r| doc.at_xpath("//*[@wsu:Id='#{r["URI"].delete_prefix("#")}']", ns).name }).to eq(%w[MeFHeader Body])
     expect(verify(Mef::Client::Envelope.serialize(doc))).to be(true)
   end
 
   it "produces a signature that no longer verifies once the signed MeFHeader changes" do
-    doc = described_class.new(credentials).sign!(login_envelope)
+    doc = described_class.new(credentials).sign(login_envelope)
     doc.at_xpath("//mefhdr:ETIN", ns).content = "99999"
 
     expect(verify(Mef::Client::Envelope.serialize(doc))).to be(false)
