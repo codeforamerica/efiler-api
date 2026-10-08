@@ -30,6 +30,7 @@
 
 /.idea
 /gyr_efiler/*.zip
+/mef_wsdls
 .DS_Store
 .byebug_history
 

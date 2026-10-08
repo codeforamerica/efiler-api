@@ -3,6 +3,7 @@ require "support/mef_test_credentials"
 
 describe Mef::Client::Signer do
   let(:credentials) { MefTestCredentials.build }
+  let(:login_envelope) { Mef::Client::Envelope.new(credentials, Mef::Client::Releases::ProcessingYear2027).login }
   let(:ns) { described_class::NAMESPACES.merge("ec" => described_class::EXC_C14N) }
   let(:exclusive) { Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0 }
 
@@ -23,14 +24,14 @@ describe Mef::Client::Signer do
   end
 
   it "signs the MeFHeader and the Body so that the serialized envelope verifies against its own certificate" do
-    doc = described_class.new(credentials).sign!(Mef::Client::Envelope.login(credentials))
+    doc = described_class.new(credentials).sign!(login_envelope)
 
     expect(doc.xpath("//ds:Reference", ns).map { |r| doc.at_xpath("//*[@wsu:Id='#{r["URI"].delete_prefix("#")}']", ns).name }).to eq(%w[MeFHeader Body])
     expect(verify(Mef::Client::Envelope.serialize(doc))).to be(true)
   end
 
   it "produces a signature that no longer verifies once the signed MeFHeader changes" do
-    doc = described_class.new(credentials).sign!(Mef::Client::Envelope.login(credentials))
+    doc = described_class.new(credentials).sign!(login_envelope)
     doc.at_xpath("//mefhdr:ETIN", ns).content = "99999"
 
     expect(verify(Mef::Client::Envelope.serialize(doc))).to be(false)
