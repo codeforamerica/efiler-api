@@ -40,12 +40,28 @@ describe Mef::Client::Session do
 
       expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/mtom/GetAcks").with { |request|
         doc = soap_part(request)
-        request.headers["Cookie"] == "JSESSIONID=jsession-1; dc=dcs" &&
+        request.headers["Cookie"] == "JSESSIONID=jsession-1; dc=dcd" &&
           request.headers["Soapaction"] == %("http://www.irs.gov/a2a/mef/mtom/GetAcks") &&
           doc.at_xpath("//wsse:Security/saml:Assertion//saml:AttributeValue", ns)&.text == "session-value" &&
           doc.at_xpath("//mtx:GetAcksRequest/mtx:SubmissionIdList/mtx:SubmissionId", ns)&.text == "1234562026280abcdefg"
       }
-      expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/Logout").with(headers: {"Cookie" => "JSESSIONID=jsession-2; dc=dcs"})
+      expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/Logout").with(headers: {"Cookie" => "JSESSIONID=jsession-2; dc=dcd"})
+    end
+
+    # MeF validates the gateway's signature on the assertion we echo.
+    it "echoes MeF's signed SAML assertion so that its signature still verifies" do
+      described_class.open(credentials, release) { |session| session.get_acks(["1234562026280abcdefg"]) }
+
+      expect(WebMock).to have_requested(:post, "#{host}/a2a/mef/mtom/GetAcks").with { |request|
+        MefResponses.saml_signature_valid?(soap_part(request).at_xpath("//wsse:Security/saml:Assertion", ns))
+      }
+    end
+
+    it "reads an attachment MeF sends as a separate MTOM part" do
+      stub_request(:post, "#{host}/a2a/mef/mtom/GetAcks")
+        .to_return(MefResponses.transmitter("GetAcks", "AcknowledgementListAttMTOM", ack_xml, inline: false))
+
+      expect(described_class.open(credentials, release) { |session| session.get_acks(["1234562026280abcdefg"]) }).to eq(ack_xml)
     end
 
     it "echoes a newer SAML assertion when a later response carries one" do
@@ -157,6 +173,7 @@ describe Mef::Client::Session do
       "a SYSTEM_ERROR fault" => MefResponses.fault("Internal failure", classification: "SYSTEM_ERROR"),
       "a RESOURCE_UNAVAILABLE fault" => MefResponses.fault("Down for maintenance", classification: "RESOURCE_UNAVAILABLE"),
       "a session-limit fault" => MefResponses.fault("Session limit reached"),
+      "a typed fault whose detail reports the session limit" => MefResponses.fault("Session limit reached", classification: "REQUEST_ERROR"),
       "a session-cookie fault" => MefResponses.fault("Cookie validation for session failed"),
       "a 302 maintenance redirect" => {status: 302, headers: {"Location" => "https://www.irs.gov/maintenance"}, body: ""},
       "a 503" => {status: 503, headers: {"Content-Type" => "text/html"}, body: "<html>Unavailable</html>"}
@@ -177,7 +194,7 @@ describe Mef::Client::Session do
     it "does not retry a REQUEST_ERROR fault, and reports its classification, code and message" do
       stub_request(:post, "#{host}/a2a/mef/mtom/GetAcks").to_return(MefResponses.fault("Submission ID is invalid", classification: "REQUEST_ERROR"))
 
-      expect { get_acks }.to raise_error(an_instance_of(Mef::Client::Error).and(having_attributes(message: "MeF /a2a/mef/mtom/GetAcks fault (HTTP 500, REQUEST_ERROR, MEF-1): Submission ID is invalid")))
+      expect { get_acks }.to raise_error(an_instance_of(Mef::Client::Error).and(having_attributes(message: "MeF /a2a/mef/mtom/GetAcks fault (HTTP 500, REQUEST_ERROR, MEF00005): Submission ID is invalid")))
     end
 
     it "does not retry an HTTP status MeF doesn't use for transient trouble" do

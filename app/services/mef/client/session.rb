@@ -134,13 +134,13 @@ module Mef
       def raise_for_fault(path, status, fault)
         detail = fault.at_xpath(".//mefhdr:ErrorExceptionDetail", NAMESPACES)
         classification = detail&.at_xpath("mefhdr:ErrorClassificationCd", NAMESPACES)&.text
-        fault_string = fault.at_xpath("faultstring")&.text.to_s
+        # A typed fault's faultstring is just "ErrorExceptionDetail"; its message is in the detail.
+        fault_text = detail&.at_xpath("mefhdr:ErrorMessageTxt", NAMESPACES)&.text || fault.at_xpath("faultstring")&.text.to_s
         message = "MeF #{path} fault (HTTP #{status}, #{classification || "unclassified"}" \
-          "#{detail&.at_xpath("mefhdr:ErrorMessageCd", NAMESPACES)&.text&.then { |code| ", #{code}" }}): " \
-          "#{detail&.at_xpath("mefhdr:ErrorMessageTxt", NAMESPACES)&.text || fault_string}"
+          "#{detail&.at_xpath("mefhdr:ErrorMessageCd", NAMESPACES)&.text&.then { |code| ", #{code}" }}): #{fault_text}"
 
         retryable = RETRYABLE_FAULT_CLASSIFICATIONS.include?(classification) ||
-          RETRYABLE_FAULT_MESSAGES.any? { |pattern| fault_string.match?(pattern) }
+          RETRYABLE_FAULT_MESSAGES.any? { |pattern| fault_text.match?(pattern) }
         raise(retryable ? MefService::RetryableError : Error, message)
       end
 
