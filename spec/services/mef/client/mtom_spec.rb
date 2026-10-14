@@ -30,6 +30,13 @@ describe Mef::Client::Mtom do
     expect(attachments).to be_empty
   end
 
+  # MeF inlines a small attachment as base64 instead of moving it to its own part.
+  it "decodes an attachment carried inline as base64 rather than referenced with xop:Include" do
+    doc = Nokogiri::XML(%(<Att>#{Base64.strict_encode64(attachment)}</Att>))
+
+    expect(described_class.resolve(doc.root, {})).to eq(attachment)
+  end
+
   it "raises when an xop:Include names an attachment the message doesn't carry" do
     doc, attachments = described_class.parse(*described_class.build(envelope).to_h.values_at(:content_type, :body))
 

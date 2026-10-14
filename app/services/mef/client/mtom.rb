@@ -39,10 +39,14 @@ module Mef
         [Nokogiri::XML(root), parts]
       end
 
-      # The bytes an element's xop:Include refers to.
+      # The bytes an element carries: the part its xop:Include refers to or, as MeF sends small
+      # attachments, its own base64 content.
       def self.resolve(element, attachments)
-        content_id = element.at_xpath("xop:Include", "xop" => XOP)&.[]("href")&.delete_prefix("cid:")
-        attachments.fetch(CGI.unescape(content_id.to_s)) { raise Error, "#{element.name} references a missing MTOM attachment" }
+        include = element.at_xpath("xop:Include", "xop" => XOP)
+        return Base64.decode64(element.text) if include.nil?
+
+        content_id = CGI.unescape(include["href"].to_s.delete_prefix("cid:"))
+        attachments.fetch(content_id) { raise Error, "#{element.name} references a missing MTOM attachment" }
       end
 
       private_class_method def self.part_header(boundary, content_id, content_type)
