@@ -26,6 +26,11 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      MEF_WSDLS_S3_BUCKET: ${{ secrets.MEF_WSDLS_S3_BUCKET }}
 
     services:
       postgres:
@@ -49,6 +54,23 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
+
+      # Not cached: fork PRs can read the base branch's Actions caches, and the WSDLs aren't redistributable.
+      # Without secrets (forks, Dependabot) the download is skipped and the conformance specs skip.
+      - name: Assume MeF WSDLs role
+        if: env.MEF_WSDLS_S3_BUCKET != ''
+        uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ secrets.MEF_WSDLS_AWS_ROLE_ARN }}
+          aws-region: us-east-1
+          role-duration-seconds: 900
+
+      - name: Download MeF WSDLs
+        if: env.MEF_WSDLS_S3_BUCKET != ''
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+        run: bundle exec ruby script/download_mef_wsdls.rb
 
       - name: Run tests
         env:

@@ -43,7 +43,12 @@ class MefService
     JSON.parse(response.secret_string).transform_keys { |k| k.to_sym }
   end
 
+  # A client whose credentials set mef_transport to "ruby" talks to MeF through Mef::Client;
+  # any other client still shells out to gyr-efiler. Either way the result is the XML document
+  # MeF returned as the response attachment.
   def self.run_efiler_command(mef_credentials, *args)
+    return run_mef_client_command(mef_credentials, *args) if mef_credentials[:mef_transport] == "ruby"
+
     Dir.mktmpdir do |working_directory|
       FileUtils.mkdir_p(File.join(working_directory, "output", "log"))
       config_dir = create_config_dir(working_directory, mef_credentials)
@@ -83,6 +88,25 @@ class MefService
       end
 
       get_single_file_from_zip(Dir.glob(File.join(working_directory, "output", "*.zip"))[0])
+    end
+  end
+
+  private_class_method def self.run_mef_client_command(mef_credentials, command, *args)
+    credentials = Mef::Client::Credentials.new(**mef_credentials)
+    release = Mef::Client::Release.for(credentials.mef_env)
+    Rails.logger.info("MeF #{command} via Mef::Client (WSDL release #{release.wsdl_version})")
+    Mef::Client::Session.open(credentials, release) do |session|
+      case command
+      when "submit"
+        submission_path = args.first
+        session.send_submissions(File.basename(submission_path, ".zip"), File.binread(submission_path))
+      when "submissions-status"
+        session.get_submissions_status(args)
+      when "acks"
+        session.get_acks(args)
+      else
+        raise ArgumentError, "Unknown MeF command #{command.inspect}"
+      end
     end
   end
 

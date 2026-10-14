@@ -1,4 +1,5 @@
 require "rails_helper"
+require "support/mef_test_credentials"
 
 describe MefService do
   let(:mef_credentials) { {mef_env: "test", app_sys_id: "foo", etin: "bar", cert_base64: "baz"} }
@@ -276,6 +277,55 @@ describe MefService do
           expect {
             described_class.run_efiler_command(mef_credentials)
           }.to raise_error(MefService::RetryableError)
+        end
+      end
+    end
+
+    context "for a client on the Ruby MeF client" do
+      include ActiveSupport::Testing::TimeHelpers
+
+      let(:ruby_credentials) do
+        {mef_env: "test", app_sys_id: "12345678", etin: "12345", cert_base64: MefTestCredentials.cert_base64, efiler_api_public_key: "key", mef_transport: "ruby"}
+      end
+      let(:session) { instance_double(Mef::Client::Session) }
+
+      before do
+        allow(Process).to receive(:spawn)
+        allow(Mef::Client::Session).to receive(:open).and_yield(session)
+      end
+
+      it "opens a session for the client's credentials, on the release MeF serves today, without gyr-efiler" do
+        allow(session).to receive(:get_acks).and_return("<AcknowledgementList/>")
+        allow(Rails.logger).to receive(:info)
+
+        travel_to Date.new(2026, 10, 13) do
+          expect(described_class.run_efiler_command(ruby_credentials, "acks", "1234562026286abcdefg")).to eq("<AcknowledgementList/>")
+        end
+
+        expect(Mef::Client::Session).to have_received(:open)
+          .with(having_attributes(etin: "12345", app_sys_id: "12345678", mef_env: "test"), Mef::Client::Releases::ProcessingYear2027)
+        expect(session).to have_received(:get_acks).with(["1234562026286abcdefg"])
+        expect(Process).not_to have_received(:spawn)
+        expect(Rails.logger).to have_received(:info).with("MeF acks via Mef::Client (WSDL release 10.A)")
+      end
+
+      it "fetches submission statuses for the given IDs" do
+        allow(session).to receive(:get_submissions_status).and_return("<StatusRecordList/>")
+
+        expect(described_class.run_efiler_command(ruby_credentials, "submissions-status", "1234562026286abcdefg", "1234562026286hijklmn"))
+          .to eq("<StatusRecordList/>")
+        expect(session).to have_received(:get_submissions_status).with(["1234562026286abcdefg", "1234562026286hijklmn"])
+      end
+
+      it "submits the bundle at the given path under the submission ID its filename carries" do
+        allow(session).to receive(:send_submissions).and_return("<SubmissionReceiptList/>")
+
+        Dir.mktmpdir do |dir|
+          path = File.join(dir, "1234562026286abcdefg.zip")
+          File.binwrite(path, "PK\x03\x04 bundle".b)
+
+          expect(described_class.run_efiler_command(ruby_credentials, "submit", path)).to eq("<SubmissionReceiptList/>")
+          expect(session).to have_received(:send_submissions).with("1234562026286abcdefg", "PK\x03\x04 bundle".b)
         end
       end
     end
