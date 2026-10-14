@@ -296,6 +296,7 @@ describe MefService do
 
       it "opens a session for the client's credentials, on the release MeF serves today, without gyr-efiler" do
         allow(session).to receive(:get_acks).and_return("<AcknowledgementList/>")
+        allow(Rails.logger).to receive(:info)
 
         travel_to Date.new(2026, 10, 13) do
           expect(described_class.run_efiler_command(ruby_credentials, "acks", "1234562026286abcdefg")).to eq("<AcknowledgementList/>")
@@ -305,6 +306,7 @@ describe MefService do
           .with(having_attributes(etin: "12345", app_sys_id: "12345678", mef_env: "test"), Mef::Client::Releases::ProcessingYear2027)
         expect(session).to have_received(:get_acks).with(["1234562026286abcdefg"])
         expect(Process).not_to have_received(:spawn)
+        expect(Rails.logger).to have_received(:info).with("MeF acks via Mef::Client (WSDL release 10.A)")
       end
 
       it "fetches submission statuses for the given IDs" do

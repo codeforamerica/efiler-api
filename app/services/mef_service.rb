@@ -94,6 +94,7 @@ class MefService
   private_class_method def self.run_mef_client_command(mef_credentials, command, *args)
     credentials = Mef::Client::Credentials.new(**mef_credentials)
     release = Mef::Client::Release.for(credentials.mef_env)
+    Rails.logger.info("MeF #{command} via Mef::Client (WSDL release #{release.wsdl_version})")
     Mef::Client::Session.open(credentials, release) do |session|
       case command
       when "submit"
