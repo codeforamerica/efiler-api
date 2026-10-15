@@ -1,9 +1,7 @@
 require_relative "../config/environment"
 
-LIVE_VERSIONS = [MefService::V16, MefService::V17].freeze
-
 credentials = Aws::Credentials.new(ENV["GYR_EFILER_RELEASES_AWS_ACCESS_KEY_ID"], ENV["GYR_EFILER_RELEASES_AWS_SECRET_ACCESS_KEY"])
-LIVE_VERSIONS.each do |version|
+MefService::LIVE_VERSIONS.each do |version|
   download_paths = [
     "gyr_efiler/gyr-efiler-classes-#{version}.zip",
     "gyr_efiler/gyr-efiler-config-#{version}.zip"
