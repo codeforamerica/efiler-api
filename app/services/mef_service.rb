@@ -1,7 +1,10 @@
 # TODO: implement .with_lock or equivalent to prevent too many connections with mef (?)
 class MefService
-  # TODO: update to most recent commit
-  CURRENT_VERSION = "8c46c9dccfc4da4b0acec5813966b1ba68abe245"
+  V16 = "8c46c9dccfc4da4b0acec5813966b1ba68abe245".freeze
+  V17 = "01120f1924dcbd7b023b14dcf6067b82af97060d".freeze
+  LIVE_VERSIONS = [V16, V17].freeze
+  MEF_TIME_ZONE = "America/New_York"
+
   RETRYABLE_LOG_CONTENTS = [
     /Transaction Result: The server sent HTTP status code 302: Moved Temporarily/,
     /connect timed out - Fault Code: soap:Server/,
@@ -47,7 +50,7 @@ class MefService
     Dir.mktmpdir do |working_directory|
       FileUtils.mkdir_p(File.join(working_directory, "output", "log"))
       config_dir = create_config_dir(working_directory, mef_credentials)
-      classes_zip_path = ensure_gyr_efiler_downloaded
+      classes_zip_path = ensure_gyr_efiler_downloaded(mef_credentials[:mef_env])
 
       # /Library/Java/JavaVirtualMachines
       java = ENV["VITA_MIN_JAVA_HOME"] ? File.join(ENV["VITA_MIN_JAVA_HOME"], "bin", "java") : "java"
@@ -86,6 +89,14 @@ class MefService
     end
   end
 
+  private_class_method def self.version_for(mef_env)
+    if mef_env == "prod" && Time.find_zone!(MEF_TIME_ZONE).today.year < 2027
+      V16
+    else
+      V17
+    end
+  end
+
   # A field runs from its label to the start of the next one, so a value spanning many lines —
   # certificates and request bodies both do — is one chunk, kept or dropped whole. Text before
   # the first label, and any label not named above, is dropped. Redacted fields keep a
@@ -109,12 +120,12 @@ class MefService
   end
 
   private_class_method def self.create_config_dir(working_directory, mef_credentials)
-    mef_credentials => {app_sys_id:, etin:, cert_base64:}
+    mef_credentials => {app_sys_id:, etin:, cert_base64:, mef_env:}
 
     config_dir = File.join(working_directory, "gyr_efiler_config")
     FileUtils.mkdir(config_dir)
 
-    config_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-config-#{CURRENT_VERSION}.zip"))[0]
+    config_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-config-#{version_for(mef_env)}.zip"))[0]
     raise StandardError.new("Please run `bundle exec ruby script/download_gyr_efiler.rb` then try again") if config_zip_path.nil?
 
     unzip_command = "unzip -o #{config_zip_path} -d #{working_directory}"
@@ -138,8 +149,8 @@ class MefService
     File.write(File.join(config_dir, "secret_key_and_cert.p12.key"), Base64.decode64(efile_cert_base64), mode: "wb")
   end
 
-  private_class_method def self.ensure_gyr_efiler_downloaded
-    classes_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-classes-#{CURRENT_VERSION}.zip"))[0]
+  private_class_method def self.ensure_gyr_efiler_downloaded(mef_env)
+    classes_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-classes-#{version_for(mef_env)}.zip"))[0]
     raise StandardError.new("You must run `ruby scripts/download_gyr_efiler.rb`") if classes_zip_path.nil?
 
     classes_zip_path
