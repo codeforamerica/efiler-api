@@ -202,7 +202,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.4-x86_64-linux-musl)
       racc (~> 1.4)
-    open3 (0.2.1)
+    open3 (0.3.0)
     openssl (4.0.2)
     parallel (2.2.0)
     parser (3.3.12.0)
