@@ -28,6 +28,34 @@ describe MefService do
     end
   end
 
+  describe ".version_for" do
+    include ActiveSupport::Testing::TimeHelpers
+
+    let(:eastern) { Time.find_zone!(MefService::MEF_TIME_ZONE) }
+
+    context "for production" do
+      it "uses V16 through the end of 2026 Eastern, even once it is 2027 in UTC" do
+        travel_to(eastern.local(2026, 12, 31, 23, 59)) do
+          expect(described_class.send(:version_for, "prod")).to eq(MefService::V16)
+        end
+      end
+
+      it "uses V17 from the start of 2027 Eastern" do
+        travel_to(eastern.local(2027, 1, 1, 0, 0)) do
+          expect(described_class.send(:version_for, "prod")).to eq(MefService::V17)
+        end
+      end
+    end
+
+    context "for ATS" do
+      it "uses V17 before 2027" do
+        travel_to(eastern.local(2026, 10, 14)) do
+          expect(described_class.send(:version_for, "test")).to eq(MefService::V17)
+        end
+      end
+    end
+  end
+
   describe ".run_efiler_command" do
     context "success" do
       let(:zip_data) do
