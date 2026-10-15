@@ -3,6 +3,7 @@ class MefService
   V16 = "8c46c9dccfc4da4b0acec5813966b1ba68abe245".freeze
   V17 = "01120f1924dcbd7b023b14dcf6067b82af97060d".freeze
   LIVE_VERSIONS = [V16, V17].freeze
+  MEF_TIME_ZONE = "America/New_York"
 
   RETRYABLE_LOG_CONTENTS = [
     /Transaction Result: The server sent HTTP status code 302: Moved Temporarily/,
@@ -89,7 +90,7 @@ class MefService
   end
 
   private_class_method def self.version_for(mef_env)
-    if mef_env == "prod" && Date.today.year < 2027
+    if mef_env == "prod" && Time.find_zone!(MEF_TIME_ZONE).today.year < 2027
       V16
     else
       V17
