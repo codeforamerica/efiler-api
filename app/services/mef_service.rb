@@ -1,7 +1,8 @@
 # TODO: implement .with_lock or equivalent to prevent too many connections with mef (?)
 class MefService
-  # TODO: update to most recent commit
-  CURRENT_VERSION = "8c46c9dccfc4da4b0acec5813966b1ba68abe245"
+  V16 = "01120f1924dcbd7b023b14dcf6067b82af97060d".freeze
+  V17 = "8c46c9dccfc4da4b0acec5813966b1ba68abe245".freeze
+
   RETRYABLE_LOG_CONTENTS = [
     /Transaction Result: The server sent HTTP status code 302: Moved Temporarily/,
     /connect timed out - Fault Code: soap:Server/,
@@ -86,6 +87,14 @@ class MefService
     end
   end
 
+  private_class_method def self.current_version
+    if Rails.env.production? && Date.today.year < 2027
+      V16
+    else
+      V17
+    end
+  end
+
   # A field runs from its label to the start of the next one, so a value spanning many lines —
   # certificates and request bodies both do — is one chunk, kept or dropped whole. Text before
   # the first label, and any label not named above, is dropped. Redacted fields keep a
@@ -114,7 +123,7 @@ class MefService
     config_dir = File.join(working_directory, "gyr_efiler_config")
     FileUtils.mkdir(config_dir)
 
-    config_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-config-#{CURRENT_VERSION}.zip"))[0]
+    config_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-config-#{current_version}.zip"))[0]
     raise StandardError.new("Please run `bundle exec ruby script/download_gyr_efiler.rb` then try again") if config_zip_path.nil?
 
     unzip_command = "unzip -o #{config_zip_path} -d #{working_directory}"
@@ -139,7 +148,7 @@ class MefService
   end
 
   private_class_method def self.ensure_gyr_efiler_downloaded
-    classes_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-classes-#{CURRENT_VERSION}.zip"))[0]
+    classes_zip_path = Dir.glob(File.join(Dir.pwd, "gyr_efiler", "gyr-efiler-classes-#{current_version}.zip"))[0]
     raise StandardError.new("You must run `ruby scripts/download_gyr_efiler.rb`") if classes_zip_path.nil?
 
     classes_zip_path
