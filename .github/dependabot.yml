@@ -3,9 +3,9 @@ updates:
   - package-ecosystem: "bundler"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     cooldown:
-      default-days: 7
+      default-days: 3
     groups:
       ruby-dev-tooling:
         patterns:
@@ -24,9 +24,9 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     cooldown:
-      default-days: 7
+      default-days: 3
     groups:
       github-actions-minor-patch:
         patterns:
