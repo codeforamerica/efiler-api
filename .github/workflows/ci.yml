@@ -35,14 +35,10 @@ jobs:
         uses: ruby/setup-ruby@v1.343.0
         with:
           ruby-version: .ruby-version
-
-      - name: Install ruby_audit
-        run: gem install ruby_audit --no-document
+          bundler-cache: true
 
       - name: Check Ruby and RubyGems versions for known vulnerabilities
-        # Run outside the checkout so ruby-audit doesn't try to load the app's bundle
-        working-directory: ${{ runner.temp }}
-        run: ruby-audit check
+        run: bundle exec ruby-audit check
 
   test:
     runs-on: ubuntu-latest
