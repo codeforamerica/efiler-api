@@ -40,6 +40,8 @@ jobs:
         run: gem install ruby_audit --no-document
 
       - name: Check Ruby and RubyGems versions for known vulnerabilities
+        # Run outside the checkout so ruby-audit doesn't try to load the app's bundle
+        working-directory: ${{ runner.temp }}
         run: ruby-audit check
 
   test:
