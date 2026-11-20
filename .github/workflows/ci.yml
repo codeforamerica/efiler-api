@@ -24,6 +24,24 @@ jobs:
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
+  ruby_audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1.338.0
+        with:
+          ruby-version: .ruby-version
+
+      - name: Install ruby_audit
+        run: gem install ruby_audit --no-document
+
+      - name: Check Ruby and RubyGems versions for known vulnerabilities
+        run: ruby-audit check
+
   test:
     runs-on: ubuntu-latest
 
